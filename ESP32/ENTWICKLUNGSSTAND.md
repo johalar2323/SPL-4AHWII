@@ -28,13 +28,15 @@
 - **Hardware-Test (P-07):** Erfolgreich auf ESP32-D0WD-V3 geflasht und im Seriellen Monitor verifiziert.
 
 ### [v1.1] – 12.10.2026: Pixelboard Start – Panel 1 Laufschrift mit Sekundenzähler
+- **Commit:** `766d1d7` – *feat(display): LauftextPanel mit Sekundenzaehler, Joystick-Steuerung und Entwicklungsstand-Doku hinzugefuegt*
 - **Was wurde gemacht:**
-  - Bibliotheken `FastLED` (v3.6.0 für ESP32-Stabilität), `LEDMatrix` und `LEDText` (Aaron Liddiment) installiert und gepatcht (`struct CRGB` Typdefinition an moderne FastLED-Versionen angepasst).
-  - Modulare Klasse `LauftextPanel` (`LauftextPanel_SPL`) für $32 \times 8$ WS2812 Panel mit vertikaler Zick-Zack-Verdrahtung (`VERTICAL_ZIGZAG_MATRIX`) erstellt.
+  - Bibliotheken `FastLED` (v3.6.0 für ESP32-Stabilität), `LEDMatrix` und `LEDText` (Aaron Liddiment) installiert und gepatcht.
+  - Klasse `LauftextPanel` (`LauftextPanel_SPL`) für $32 \times 8$ WS2812 Panel mit vertikaler Zick-Zack-Verdrahtung (`VERTICAL_ZIGZAG_MATRIX`) erstellt.
   - Dynamischer Sekundenzähler integriert: Scrollender Text zeigt Sekunden seit Start an (`4AHWII PIXELBOARD: <x>s`).
   - Helligkeitsdrosselung auf 20 (von 255) zum Schutz des USB-Ports vor Überstrom.
-  - Joystick-Integration: Umschaltung der Textfarbe per langem Tastendruck (`wurdeLangeGedrueckt()`), Rücksetzen des Sekundenzählers per Kurzdruck.
+  - Joystick-Integration: Umschaltung der Textfarbe per langem Tastendruck, Rücksetzen des Sekundenzählers per Kurzdruck.
 - **Build-Test (P-08):** Erfolgreich mit PlatformIO übersetzt (289 KB Flash, 23 KB RAM).
+- **Gepusht auf:** `https://github.com/johalar2323/SPL-4AHWII.git` → `ESP32/LauftextPanel/`
 
 ---
 

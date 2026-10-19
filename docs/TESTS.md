@@ -24,3 +24,9 @@
 - `pio run -e esp32dev -e test_master` im Firmware-Ordner mit Core 6.2.0: beide Umgebungen erfolgreich kompiliert und gelinkt (Exitcode 0). `esp32dev`: RAM 23.264 Byte, Flash 289.509 Byte. `test_master`: RAM 21.480 Byte, Flash 271.225 Byte. FastLED meldet weiterhin den bekannten Hinweis zu Hardware-SPI-Pins.
 - XLSX-Abgleich per Python-Standardbibliothek (`zipfile`, XML): alle elf Datenzeilen aus dem einzigen Tabellenblatt exakt mit der Markdown-Tabelle verglichen, ganzzahlige GPIO-Werte ohne `.0` normalisiert. Keine Formeln oder Texte in der Zeichnung vorhanden. Ergebnis: erfolgreich; „13 ?“ und „Joystick 5 V“ unverändert erhalten.
 - Einschränkungen: In dieser Arbeitsphase kein Firmware-Upload und kein Hardwaretest. Builds bestätigen keine Verdrahtung und kein Laufzeitverhalten. DHT22-Pin und Joystick-Versorgungsbezeichnung bleiben zu klären.
+
+## 19.10.2026 – Allgemeine AGENTS-Vorlage übernehmen
+
+- Die allgemeinen Regeln der zentralen `AGENTS.md` per Skript mit `%USERPROFILE%/.codex/AGENTS.md` verglichen: vollständig übernommen; ausschließlich Markdown-Escapes und mehrfache Leerzeilen normalisiert.
+- Den vollständigen bisherigen CREO-Regelblock auf unveränderte Übernahme geprüft. Die globale Quelldatei blieb bytegenau unverändert. Ergebnis: erfolgreich.
+- Nur Agentenregeln und Dokumentation geändert; keine erneuten Firmware-Builds oder Hardwaretests erforderlich.

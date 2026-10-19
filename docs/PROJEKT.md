@@ -23,7 +23,7 @@ Das zweite Panel (GPIO 26) und der Sensor (GPIO 13) bleiben wie zuvor nur als Pi
 
 Die vollständige Pinreferenz steht unter [PINBELEGUNG.md](PINBELEGUNG.md). Sie ersetzt `ESP32/Programmierung/Pinbelegung ESP32.xlsx`, damit Pins ohne Excel-Auswertung gelesen werden können. Die ungeklärte DHT22-Zuordnung und die ursprüngliche Versorgungsbezeichnung des Joysticks sind dort erhalten. Die Firmware-Pins bleiben unverändert.
 
-Die projektweiten Regeln stehen in `AGENTS.md` im Repository-Stamm; `ESP32/Programmierung/AGENTS.md` ergänzt die Pfade zur Dokumentation und die Bibliotheksverwaltung für den Firmware-Ordner.
+Die `AGENTS.md` im Repository-Stamm übernimmt die vollständigen allgemeinen Regeln aus der persönlichen Vorlage `%USERPROFILE%/.codex/AGENTS.md` und ergänzt sie um projektspezifische Regeln einschließlich der CREO-Prüfung. Die globale Vorlage bleibt unverändert. `ESP32/Programmierung/AGENTS.md` ergänzt die Pfade zur Dokumentation und die Bibliotheksverwaltung für den Firmware-Ordner.
 
 ## Bauen und verwenden
 

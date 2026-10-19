@@ -40,6 +40,14 @@
 - **Build-Test (P-08):** Erfolgreich mit PlatformIO übersetzt (289 KB Flash, 23 KB RAM).
 - **Gepusht auf:** `https://github.com/johalar2323/SPL-4AHWII.git` → `ESP32/LauftextPanel/`
 
+### [v1.2] – 19.10.2026: Panel-Ausrichtung & sanfter Lauftext-Einlauf verifiziert
+- **Was wurde gemacht:**
+  - Panel-Ausrichtung für DIN-Anschluss oben rechts angepasst (`PANEL_WIDTH = -32` in `LauftextPanel_SPL.h`), sodass die X-Achse gespiegelt wird und die Schrift von links nach rechts korrekt lesbar ist.
+  - Einlauf-Verhalten korrigiert: Führende Leerzeichen im Puffer auf 12 erweitert (`"            %s: %lus            "`). Der Text startet damit vollständig außerhalb der 32 Pixel breiten Matrix und scrollt sanft hinein, anstatt abrupt im Bild zu erscheinen.
+  - Team-Stand integriert: FreeRTOS-Aufgaben (Tasks A, B, C) und neue `LedAnzeige`-Bibliothek der Kollegen zusammengeführt.
+- **Hardware-Test:** Erfolgreich auf ESP32 mit WS2812B-Panel (GPIO 25) und Joystick verifiziert.
+- **Build-Test:** PlatformIO Build (`esp32dev`) erfolgreich (289 KB Flash, 23 KB RAM).
+
 ---
 
 ## 3. Git-Workflow Anleitung (Team-Leitfaden)

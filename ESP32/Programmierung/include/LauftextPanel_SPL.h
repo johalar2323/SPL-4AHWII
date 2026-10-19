@@ -8,7 +8,8 @@
 #include <FontMatrise.h>
 
 // Matrix-Konfiguration für ein einzelnes WS2812 Panel (8 Zeilen, 32 Spalten)
-#define PANEL_WIDTH       32
+// Kabel oben rechts: X-Achse gespiegelt (-32), damit Text von links nach rechts richtig laeuft
+#define PANEL_WIDTH       -32
 #define PANEL_HEIGHT      8
 #define PANEL_MATRIX_TYPE VERTICAL_ZIGZAG_MATRIX
 
@@ -37,9 +38,11 @@ class LauftextPanel {
 
     /**
      * @brief Aktualisiert den Puffer mit Basistext und Sekundenzähler.
+     * Ausreichend führende Leerzeichen sorgen dafür, dass der Text weich von außerhalb
+     * der Matrix (32 Pixel Breite) hineinwandert statt plötzlich aufzutauchen.
      */
     void aktualisierePuffer() {
-      snprintf(textPuffer, sizeof(textPuffer), "   %s: %lus   ", basisText, sekundenZaehler);
+      snprintf(textPuffer, sizeof(textPuffer), "            %s: %lus            ", basisText, sekundenZaehler);
     }
 
   public:

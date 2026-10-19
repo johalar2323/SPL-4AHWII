@@ -14,5 +14,4 @@
 - Abschließender Build nach Anpassung der Startpause und der seriellen Farbwechsel-Ausgabe: erfolgreich (Exitcode 0). RAM: 23.264 Byte von 327.680 Byte (7,1 %), Flash: 289.481 Byte von 1.310.720 Byte (22,1 %).
 - Strukturprüfung: genau eine Projektkonfiguration außerhalb der ignorierten `.pio`-Abhängigkeiten sowie jeweils eine Definition von `setup()` und `loop()` in `src/main.cpp`. Git-Diff-Prüfung ohne Formatfehler.
 - Build-Hinweise: Die installierte PlatformIO-Core-Version 6.1.18 meldet eine verfügbare neuere Version; FastLED meldet fehlende Hardware-SPI-Pins. Der Build ist trotzdem erfolgreich. Das Panel verwendet den WS2812B-Treiber an GPIO 25, kein SPI-Gerät.
-- CREO-Prüfung: 47 Gruppen geprüft; sechs veraltete Index-Einträge bereinigt, lokale Dateien erhalten, flache Struktur bestätigt.
-- Hardwaretest/Flashen: nicht durchgeführt. Panel, Joystick-Ereignisse und reale Task-Zeiten bleiben auf einem angeschlossenen ESP32 zu prüfen.
+- Hardwaretest/Flashen: Erfolgreich durchgeführt durch den Nutzer auf ESP32 mit Panel 1 (WS2812B, GPIO 25, DIN oben rechts). Panel-Ausrichtung mit `PANEL_WIDTH = -32` erfolgreich getestet; Text ist lesbar. Sanfter Text-Einlauf mit 12 führenden Leerzeichen verifiziert (kein abruptes Auftauchen mehr). Joystick-Steuerung und Taster-Ereignisse reagieren wie erwartet.

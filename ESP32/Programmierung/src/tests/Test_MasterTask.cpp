@@ -13,7 +13,7 @@
 #include "FreeRtosAufgaben.h"        // Tasks a/b/c und ihre Handles
 #include <EntprellterTaster_SPL.h>   // Entprellung + Langdruck (1 s)
 
-// Joystick SW laut "Pinbelegung ESP32.xlsx"
+// Joystick SW laut docs/PINBELEGUNG.md im Repository-Stamm
 const byte PIN_JOYSTICK_SW = 14;
 
 TaskHandle_t handleMaster = nullptr;

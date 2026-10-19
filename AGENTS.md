@@ -10,6 +10,7 @@
 
 - Bewahre bestehende Funktionalität und halte Änderungen auf den beauftragten Umfang begrenzt. Bevorzuge einfache, wartbare Lösungen ohne unnötige Abhängigkeiten.
 - Prüfe vor Änderungen an Pins, ADC, Verdrahtung oder Board die vorhandenen Projektangaben. Fehlende Hardwaredaten bleiben offen und werden mit dem Nutzer geklärt.
+- Lies dazu `docs/PINBELEGUNG.md`, die Markdown-Referenz der bisherigen Excel-Pinbelegung.
 - Prüfe vor Änderungen an Build-, Upload- oder IDE-Einstellungen die vorhandene `platformio.ini` und die Build-Anleitung in `docs/PROJEKT.md`.
 - Führe nach Codeänderungen die relevanten verfügbaren Tests aus. Protokolliere tatsächlich ausgeführte Tests mit Ergebnis und Einschränkungen in `docs/TESTS.md`; unterscheide Build-Erfolg und Hardwareprüfung.
 - Ein Auftrag zum Git-Push ist kein Auftrag zum Flashen von Hardware. Firmware-Uploads erfolgen nur bei entsprechendem Nutzerauftrag.

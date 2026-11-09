@@ -1,5 +1,13 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Steuerung und falscher Paneeluebergang
+
+- Rueckmeldung: GPIO 25 oben, GPIO 26 unten; vertikaler Uebergang an falschen Kanten, Joystick nach oben ohne Reaktion. Keine Rohwerte gemeldet. Ein Hardwaredefekt oder eine Achseninvertierung ist nicht als Ursache bestaetigt.
+- Hosttests der Spiellogik/Integration nach Ueberarbeitung BESTANDEN (Exit 0): letzte gueltige Richtung gewinnt, Geradeaus kann eine Abbiegung abbrechen, Umkehrsperre bleibt; Snake wartet auf Startdruck. Vorherige Kollisions-, Futter-, Vollfeld-, Pause- und Timer-Tests weiterhin erfolgreich.
+- Zusaetzlicher Hosttest `test_joystick.cpp` mit tatsaechlicher Joystick-/Tasterklasse und ADC-Simulation BESTANDEN: alle Richtungen, 25-Prozent-Ansprechschwelle, Halten bis zum Loslassbereich, Diagonalstabilitaet und 32-Sample-Kalibrierung. Neue Y-Abbildung: vier Indexreferenzen und 512 eindeutige Pixel ohne Luecken geprueft.
+- Firmware-Builds fuer esp32dev, test_master, test_led, test_koordinaten und test_steuerung BESTANDEN (Exit 0). Abschliessende Hosttests ebenfalls bestanden. Hauptprogramm und Steuerungstest nach Ergaenzung des Kalibrierungshinweises erneut erfolgreich gebaut.
+- Hardwarepruefung mit `test_steuerung`/Eckfarben und ADC-Werten noch OFFEN. Kein Flashen, kein Push. Die vermutete Y-Korrektur und die Reaktion auf echte Joystickbewegungen sind durch Hosttests nicht bestaetigt.
+
 ## 09.11.2026 – Snake mit gemeinsamer Anzeige
 
 - Hosttests: `ESP32/Programmierung/test/snake/run.cmd` vom Repository-Stamm, benoetigt die vorhandenen Visual Studio 2022 C++ BuildTools. Alternativ sind die beiden Testprogramme mit einem C++14-Compiler und `SnakeSpiel.cpp` uebersetzbar; fuer `test_modus.cpp` kommen zuerst `test/snake/fakes`, dann `include` in den Include-Pfad. Binaerdateien liegen unter `.work/snake`.

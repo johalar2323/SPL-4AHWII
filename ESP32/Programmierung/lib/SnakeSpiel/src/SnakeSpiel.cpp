@@ -7,7 +7,6 @@ void SnakeSpiel::neustart(uint32_t zufall) {
   koerper[1] = {15, 8};
   koerper[2] = {14, 8};
   richtung = vorgemerkt = SpielRichtung::Rechts;
-  abgebogen = false;
   status = SpielZustand::Laeuft;
   futterPlatzieren(zufall);
 }
@@ -31,10 +30,10 @@ void SnakeSpiel::futterPlatzieren(uint32_t zufall) {
 }
 
 void SnakeSpiel::richtungAnfordern(SpielRichtung neu) {
-  if (status != SpielZustand::Laeuft || abgebogen || neu == richtung) return;
+  // Bis zum Spielschritt gilt die letzte Eingabe, relativ zur aktuellen Fahrtrichtung.
+  if (status != SpielZustand::Laeuft) return;
   if ((static_cast<int>(neu) + 2) % 4 == static_cast<int>(richtung)) return;
   vorgemerkt = neu;
-  abgebogen = true;
 }
 
 void SnakeSpiel::pauseUmschalten() {
@@ -45,7 +44,6 @@ void SnakeSpiel::pauseUmschalten() {
 void SnakeSpiel::schritt(uint32_t zufall) {
   if (status != SpielZustand::Laeuft) return;
   richtung = vorgemerkt;
-  abgebogen = false;
   SpielPunkt neu = segment(0);
   switch (richtung) {
     case SpielRichtung::Rechts: ++neu.x; break;

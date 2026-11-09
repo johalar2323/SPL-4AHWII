@@ -36,6 +36,14 @@ int main() {
   s.pauseUmschalten(); s.schritt(0);
   assert((s.segment(0) == SpielPunkt{17,6}));
   s.neustart(0);
+  s.richtungAnfordern(SpielRichtung::Oben);
+  s.richtungAnfordern(SpielRichtung::Unten); s.schritt(0);
+  assert((s.segment(0) == SpielPunkt{16,9})); // Letzte gueltige Korrektur zaehlt.
+  s.neustart(0);
+  s.richtungAnfordern(SpielRichtung::Oben);
+  s.richtungAnfordern(SpielRichtung::Rechts); s.schritt(0);
+  assert((s.segment(0) == SpielPunkt{17,8})); // Zurueck zur Geradeausfahrt.
+  s.neustart(0);
   for (int i = 0; i < 16; ++i) s.schritt(0);
   assert(s.zustand() == SpielZustand::Verloren);
   const auto ende = s.segment(0); s.schritt(0); assert(s.segment(0) == ende);

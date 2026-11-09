@@ -27,6 +27,5 @@ private:
   uint16_t kopfIndex = 0, anzahl = 3;
   SpielRichtung richtung = SpielRichtung::Rechts, vorgemerkt = SpielRichtung::Rechts;
   SpielZustand status = SpielZustand::Laeuft;
-  bool abgebogen = false;
   void futterPlatzieren(uint32_t zufall);
 };

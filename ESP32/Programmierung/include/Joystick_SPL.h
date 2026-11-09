@@ -30,6 +30,7 @@ class Joystick : public EntprellterTaster {
     int mitteX;                  // Kalibrierter Mittelwert X-Achse (~2048)
     int mitteY;                  // Kalibrierter Mittelwert Y-Achse (~2048)
     int deadzone;                // Totzone um die Ruhelage zur Rauschunterdrückung
+    JoystickRichtung aktuelleRichtung = JoystickRichtung::Mitte;
     int schwelleRichtung;        // Schwellwert ab der Mitte für Richtungserkennung
 
     /**

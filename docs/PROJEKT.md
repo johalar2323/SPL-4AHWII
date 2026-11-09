@@ -1,10 +1,20 @@
 # PIXELBOARD: gemeinsames ESP32-Projekt
 
+## Steuerung und Paneelabbildung ueberarbeitet (09.11.2026)
+
+Nutzerbefund nach Snake-Test: GPIO 25 ist physisch oben, GPIO 26 unten. Der Uebergang erschien an den aeusseren statt den benachbarten Kanten; eine Joystickbewegung nach oben bewirkte nichts. Die lokale Y-Abbildung beider Paneele wurde deshalb gespiegelt. X und die relative 180-Grad-Drehung unten bleiben erhalten. Diese Korrektur ist am Aufbau noch mit den Eckfarben zu bestaetigen; die genaue Ursache der ausgebliebenen Aufwaertsreaktion ist ohne ADC-Werte noch offen.
+
+Snake wartet nach dem Moduswechsel mit blauem Kopf: Kurz startet, Kurz pausiert/setzt fort, Lang kehrt zum Lauftext zurueck. Ein weisser Kopf kennzeichnet Fahrt, rot Spielende. Nach Spielende startet Kurz direkt ein neues laufendes Spiel. Zum Lenken gilt die letzte erlaubte Richtung vor dem naechsten 200-ms-Schritt, statt die erste Abbiegung zu sperren. Auch Zurueckziehen auf Geradeaus ersetzt eine vorgemerkte Abbiegung; direkte Umkehr gegen die aktuelle Fahrtrichtung bleibt verboten.
+
+Joystick: Mitte beim Einschalten loslassen, Mittelwert aus 32 ADC-Abfragen; Richtungserkennung ab 25 Prozent, Rueckkehr zur Mitte unter 15 Prozent. Bei fast diagonaler Auslenkung bleibt die bisherige Achse innerhalb einer Differenz von 10 Prozentpunkten erhalten. Die Achsen werden ohne Hardwaremessung nicht blind vertauscht oder invertiert: X negativ = links, Y negativ = oben.
+
+Fuer die Hardwarepruefung `test_steuerung` statt Snake verwenden: `pio run -d ESP32/Programmierung -e test_steuerung` baut sie; manuell `-t upload` ergaenzen, um den Test zu flashen. Ein weisser Punkt zeigt die erkannte Richtung, die Ecken bleiben rot/gruen/blau/gelb. Der Serial Monitor liefert alle 200 ms rohe und skalierte X/Y-Werte sowie OBEN/UNTEN/LINKS/RECHTS/MITTE. Bleibt beim Bewegen der Y-Rohwert gleich, liegt das Problem vor der Snake-Logik. Aendert er sich, aber mit falscher Richtung/Achse, werden die gemessenen Werte zur Achsenkorrektur benoetigt. Keine Firmware automatisch hochgeladen.
+
 ## Snake und Lauftext (09.11.2026)
 
-Das Gesamtprogramm startet mit Lauftext. Langdruck (1 s) auf Joystick 1 wechselt zu einem neuen Snake-Spiel bzw. zum Lauftext zurueck. Kurz pausiert/setzt Snake fort oder startet nach Niederlage/Sieg neu; im Lauftext setzt Kurz die Sekunden zurueck. Links/rechts waehlt dort einmal pro Richtungsaenderung eine der vier Farben. Farbe und Sekundenstand bleiben beim Moduswechsel erhalten; die Lauftextuhr pausiert waehrend Snake.
+Das Gesamtprogramm startet mit Lauftext. Langdruck (1 s) auf Joystick 1 wechselt zu einem neuen, zunaechst pausierten Snake-Spiel bzw. zum Lauftext zurueck. Kurz pausiert/setzt Snake fort oder startet nach Niederlage/Sieg neu; im Lauftext setzt Kurz die Sekunden zurueck. Links/rechts waehlt dort einmal pro Richtungsaenderung eine der vier Farben. Farbe und Sekundenstand bleiben beim Moduswechsel erhalten; die Lauftextuhr pausiert waehrend Snake.
 
-Snake: 32x16 Felder, Ursprung oben links, X rechts/Y unten, Paneelnaht zwischen Y=7/8. Startkoerper `(16,8),(15,8),(14,8)` nach rechts; alle 200 ms ein Schritt, eine gueltige Abbiegung pro Schritt, keine direkte Umkehr. Futter auf einem freien Feld verlaengert um eins und gibt einen Punkt. Rand und eigener Koerper beenden das Spiel; das gerade frei werdende Schwanzfeld bleibt betretbar. 512 belegte Felder bedeuten Sieg. Kopf hellgruen, Koerper dunkelgruen, Futter rot; nach Verlust Koerper rot, nach Sieg blau. Punkte/Zustand stehen seriell bei 115200 Baud.
+Snake: 32x16 Felder, Ursprung oben links, X rechts/Y unten, Paneelnaht zwischen Y=7/8. Startkoerper `(16,8),(15,8),(14,8)` nach rechts; alle 200 ms ein Schritt, letzte gueltige Eingabe vor dem Schritt, keine direkte Umkehr. Futter auf einem freien Feld verlaengert um eins und gibt einen Punkt. Rand und eigener Koerper beenden das Spiel; das gerade frei werdende Schwanzfeld bleibt betretbar. 512 belegte Felder bedeuten Sieg. Kopf weiss (blau bei Pause), Koerper dunkelgruen, Futter rot; nach Verlust Koerper rot, nach Sieg blau. Punkte/Zustand stehen seriell bei 115200 Baud.
 
 `lib/SnakeSpiel` enthaelt die hardwarefreie Spiellogik mit festem 512-Segment-Ringpuffer. `neustart(zufall)`, `richtungAnfordern()`, `pauseUmschalten()` und `schritt(zufall)` werden von der Hauptschleife bedient; Zufallswerte kommen dort von `esp_random()`. Ein spaeter Loop holt keine mehreren Spielschritte nach. Zeitvergleiche vertragen millis-Ueberlauf.
 

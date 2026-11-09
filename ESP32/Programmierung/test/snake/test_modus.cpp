@@ -8,6 +8,9 @@ int main() {
   setup(); assert(!snakeAktiv && anzeige.starts == 1);
   testZeit += 1100; loop(); assert(lauftext.getSekunden() == 1);
   meinJoystick.lang = true; loop(); assert(snakeAktiv && spiel.laenge() == 3);
+  assert(spiel.zustand() == SpielZustand::Pausiert);
+  testZeit += 1000; loop(); assert((spiel.segment(0) == SpielPunkt{16,8}));
+  meinJoystick.kurz = true; loop(); assert(spiel.zustand() == SpielZustand::Laeuft);
   const auto start = spiel.segment(0);
   testZeit += 198; loop(); assert(spiel.segment(0) == start);
   ++testZeit; loop(); assert((spiel.segment(0) == SpielPunkt{17,8}));
@@ -23,6 +26,7 @@ int main() {
   meinJoystick.kurz = true; loop(); assert(lauftext.getSekunden() == 0);
   testZeit = UINT32_MAX - 100;
   meinJoystick.lang = true; loop(); assert(snakeAktiv && spiel.laenge() == 3);
+  meinJoystick.kurz = true; loop();
   testZeit += 200; loop(); assert((spiel.segment(0) == SpielPunkt{17,8}));
   meinJoystick.kurz = true; loop(); assert(spiel.zustand() == SpielZustand::Pausiert);
   meinJoystick.kurz = true; loop(); assert(spiel.zustand() == SpielZustand::Laeuft);

@@ -5,9 +5,9 @@
 
 namespace ledKoordinaten {
 
-// Bildet ein Paneel ab: LED 0 unten links, erste Spalte aufwaerts, dann Zickzack.
+// Y-Abbildung nach Hardwarebefund korrigiert: Naht unten am oberen Paneel.
 constexpr int indexImPanel(int x, int y) {
-  return x * ledPanelHoehe + (x % 2 == 0 ? ledPanelHoehe - 1 - y : y);
+  return x * ledPanelHoehe + (x % 2 == 0 ? y : ledPanelHoehe - 1 - y);
 }
 
 // Dreht die lokalen Koordinaten des unteren Paneels bei Bedarf um 180 Grad.

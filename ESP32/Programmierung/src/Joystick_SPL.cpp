@@ -16,7 +16,7 @@ Joystick::Joystick(byte pinX, byte pinY, byte pinTaste, int deadzone)
   this->pinX = pinX;
   this->pinY = pinY;
   this->deadzone = deadzone;
-  this->schwelleRichtung = 50; // Standard: 50% Auslenkung für Richtungserkennung
+  this->schwelleRichtung = 25; // 25% zum Lenken, 15% zum Loslassen
   this->mitteX = 2048;         // ESP32 12-Bit Standard-Mittelwert (4096 / 2)
   this->mitteY = 2048;
   this->rawX = 2048;
@@ -77,6 +77,18 @@ void Joystick::check() {
   // Einlesen der analogen ADC-Werte (ESP32: 0 - 4095)
   rawX = analogRead(pinX);
   rawY = analogRead(pinY);
+  const int x = getX(), y = getY();
+  const int ax = abs(x), ay = abs(y);
+  if (ax < 15 && ay < 15) {
+    aktuelleRichtung = JoystickRichtung::Mitte;
+  } else if (ax >= schwelleRichtung || ay >= schwelleRichtung) {
+    // Bei nahezu diagonaler Auslenkung die bisherige Achse beibehalten.
+    bool horizontal = ax >= ay;
+    if (aktuelleRichtung != JoystickRichtung::Mitte && abs(ax - ay) < 10)
+      horizontal = aktuelleRichtung == JoystickRichtung::Links || aktuelleRichtung == JoystickRichtung::Rechts;
+    aktuelleRichtung = horizontal ? (x < 0 ? JoystickRichtung::Links : JoystickRichtung::Rechts)
+                                 : (y < 0 ? JoystickRichtung::Oben : JoystickRichtung::Unten);
+  }
 }
 
 /**
@@ -156,24 +168,19 @@ bool Joystick::istRechts() const {
  * @return Enum-Wert (Mitte, Oben, Unten, Links, Rechts).
  */
 JoystickRichtung Joystick::getRichtung() const {
-  int x = getX();
-  int y = getY();
-
-  if (abs(x) < schwelleRichtung && abs(y) < schwelleRichtung) {
-    return JoystickRichtung::Mitte;
-  }
-
-  if (abs(x) >= abs(y)) {
-    return (x > 0) ? JoystickRichtung::Rechts : JoystickRichtung::Links;
-  } else {
-    return (y > 0) ? JoystickRichtung::Unten : JoystickRichtung::Oben;
-  }
+  return aktuelleRichtung;
 }
 
 /**
  * @brief Kalibriert die Ruhelage durch Einlesen der aktuellen ADC-Werte.
  */
 void Joystick::kalibriereMitte() {
-  mitteX = analogRead(pinX);
-  mitteY = analogRead(pinY);
+  long summeX = 0, summeY = 0;
+  for (int i = 0; i < 32; ++i) {
+    summeX += analogRead(pinX);
+    summeY += analogRead(pinY);
+  }
+  rawX = mitteX = summeX / 32;
+  rawY = mitteY = summeY / 32;
+  aktuelleRichtung = JoystickRichtung::Mitte;
 }

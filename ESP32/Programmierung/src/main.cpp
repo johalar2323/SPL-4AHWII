@@ -17,7 +17,8 @@ void zeichneSpiel() {
   anzeige.loeschen();
   for (uint16_t i = 0; i < spiel.laenge(); ++i) {
     const auto p = spiel.segment(i);
-    CRGB farbe = i == 0 ? CRGB(128,255,128) : CRGB(0,80,0);
+    CRGB farbe = i == 0 ? CRGB(255,255,255) : CRGB(0,80,0);
+    if (i == 0 && spiel.zustand() == SpielZustand::Pausiert) farbe = CRGB::Blue;
     if (spiel.zustand() == SpielZustand::Verloren) farbe = CRGB::Red;
     if (spiel.zustand() == SpielZustand::Gewonnen) farbe = CRGB::Blue;
     anzeige.setzePixel(p.x, p.y, farbe);
@@ -28,7 +29,9 @@ void zeichneSpiel() {
   anzeige.anzeigen();
 }
 void setup() {
-  Serial.begin(115200); delay(1000);
+  Serial.begin(115200);
+  Serial.println("Joystick fuer die Kalibrierung loslassen.");
+  delay(1000);
   meinJoystick.kalibriereMitte(); extJoystick.kalibriereMitte();
   anzeige.begin(); lauftext.setText("4AHWII PIXELBOARD"); lauftext.begin();
   Serial.println("PIXELBOARD: Lauftext. Langdruck wechselt Snake/Lauftext.");
@@ -42,14 +45,17 @@ void loop() {
   const uint32_t jetzt = millis();
   if (lang) {
     snakeAktiv = !snakeAktiv; letzterSchritt = jetzt;
-    if (snakeAktiv) { spiel.neustart(esp_random()); zeichneSpiel(); Serial.println("Snake gestartet."); }
+    if (snakeAktiv) {
+      spiel.neustart(esp_random()); spiel.pauseUmschalten(); zeichneSpiel();
+      Serial.println("Snake bereit: Kurzdruecken startet. Kopf weiss = faehrt, blau = Pause.");
+    }
     else { lauftext.begin(); Serial.println("Lauftext aktiv."); }
   } else if (snakeAktiv) {
     if (kurz) {
       if (spiel.zustand() == SpielZustand::Verloren || spiel.zustand() == SpielZustand::Gewonnen) spiel.neustart(esp_random());
       else spiel.pauseUmschalten();
       letzterSchritt = jetzt; zeichneSpiel();
-      Serial.printf("Snake: Zustand %u, Punkte %u\n", static_cast<unsigned>(spiel.zustand()), spiel.punkte());
+      Serial.println(spiel.zustand() == SpielZustand::Pausiert ? "Snake pausiert: Kurz setzt fort." : "Snake faehrt.");
     }
     switch (richtung) {
       case JoystickRichtung::Oben: spiel.richtungAnfordern(SpielRichtung::Oben); break;
@@ -78,6 +84,8 @@ void loop() {
     letzteAusgabe = jetzt;
     if (snakeAktiv) Serial.printf("Snake: %u Punkte, Zustand %u\n", spiel.punkte(), static_cast<unsigned>(spiel.zustand()));
     else Serial.printf("Sekunden: %lus | J1: X:%d%% Y:%d%%\n", lauftext.getSekunden(), meinJoystick.getX(), meinJoystick.getY());
+    const char *namen[] = {"MITTE", "OBEN", "UNTEN", "LINKS", "RECHTS"};
+    Serial.printf("Joystick raw X=%d Y=%d -> %s\n", meinJoystick.getRawX(), meinJoystick.getRawY(), namen[static_cast<unsigned>(richtung)]);
   }
   delay(1);
 }

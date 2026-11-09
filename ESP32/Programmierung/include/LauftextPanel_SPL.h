@@ -6,25 +6,19 @@
 #include <LEDMatrix.h>
 #include <LEDText.h>
 #include <FontMatrise.h>
-
-// Matrix-Konfiguration für ein einzelnes WS2812 Panel (8 Zeilen, 32 Spalten)
-// Kabel oben rechts: X-Achse gespiegelt (-32), damit Text von links nach rechts richtig laeuft
-#define PANEL_WIDTH       -32
-#define PANEL_HEIGHT      8
-#define PANEL_MATRIX_TYPE VERTICAL_ZIGZAG_MATRIX
+#include <LedAnzeige.h>
 
 /**
- * @brief Template-Klasse zur Ansteuerung eines 32x8 WS2812 Panels mit scrollendem Lauftext und Sekundenzähler.
+ * @brief Klasse zur Ansteuerung der WS2812 Panels mit scrollendem Lauftext und Sekundenzähler.
  *
- * Verwendet FastLED, Aaron Liddiments LEDMatrix und LEDText mit Matrise Font.
- *
- * @tparam tDataPin Digitaler Pin des ESP32 (z.B. 25 für oberes Panel, 26 für unteres Panel).
+ * Verwendet FastLED, Aaron Liddiments LEDText mit Matrise Font und bindet an die
+ * gemeinsame Gruppenklasse LedAnzeige an, sodass der Text abwechselnd auf dem
+ * oberen Panel (Zeilen 0..7) und dem unteren Panel (Zeilen 8..15) durchlaeuft.
  */
-template<uint8_t tDataPin = 25>
 class LauftextPanel {
   private:
     uint8_t helligkeit;                                             // Maximale Helligkeit (0-255)
-    cLEDMatrix<PANEL_WIDTH, PANEL_HEIGHT, PANEL_MATRIX_TYPE> leds;  // FastLED Matrix
+    LedAnzeige matrix;                                              // Gemeinsame 32x16 Matrix (beide Panels)
     cLEDText scrollingMsg;                                          // LEDText Textrenderer
     char basisText[64];                                             // Fester Basistext
     char textPuffer[128];                                           // Puffer inklusive Sekundenzähler
@@ -35,6 +29,7 @@ class LauftextPanel {
     uint8_t rot;                                                    // Textfarbe R
     uint8_t gruen;                                                  // Textfarbe G
     uint8_t blau;                                                   // Textfarbe B
+    uint8_t aktivesPanel;                                           // 0 = oberes Panel (Y=0..7), 1 = unteres Panel (Y=8..15)
 
     /**
      * @brief Aktualisiert den Puffer mit Basistext und Sekundenzähler.
@@ -43,6 +38,17 @@ class LauftextPanel {
      */
     void aktualisierePuffer() {
       snprintf(textPuffer, sizeof(textPuffer), "            %s: %lus            ", basisText, sekundenZaehler);
+    }
+
+    /**
+     * @brief Richtet das Textfenster von cLEDText auf das aktuell gewählte Panel aus.
+     */
+    void initialisiereTextFenster() {
+      int16_t originY = aktivesPanel * ledPanelHoehe;
+      matrix.loeschen();
+      scrollingMsg.Init(&matrix, ledPanelBreite, scrollingMsg.FontHeight() + 1, 0, originY);
+      scrollingMsg.SetText((unsigned char *)textPuffer, strlen(textPuffer));
+      scrollingMsg.SetTextColrOptions(COLR_RGB | COLR_SINGLE, rot, gruen, blau);
     }
 
   public:
@@ -60,24 +66,21 @@ class LauftextPanel {
       this->rot = 0x00;
       this->gruen = 0xFF; // Standard: Grün
       this->blau = 0x88;
+      this->aktivesPanel = 0; // Beginn auf oberem Panel
       strncpy(this->basisText, "PIXELBOARD", sizeof(this->basisText) - 1);
       aktualisierePuffer();
     }
 
     /**
-     * @brief Initialisiert FastLED und richtet den Textrenderer ein.
+     * @brief Initialisiert FastLED über LedAnzeige und richtet den Textrenderer ein.
      */
     void begin() {
-      // WS2812 Controller an den parametrierten Pin binden
-      FastLED.addLeds<WS2812B, tDataPin, GRB>(leds[0], leds.Size());
+      matrix.begin();
       FastLED.setBrightness(helligkeit);
-      FastLED.clear(true);
 
       // Schriftart und Scrollfenster konfigurieren
       scrollingMsg.SetFont(MatriseFontData);
-      scrollingMsg.Init(&leds, leds.Width(), scrollingMsg.FontHeight() + 1, 0, 0);
-      scrollingMsg.SetText((unsigned char *)textPuffer, strlen(textPuffer));
-      scrollingMsg.SetTextColrOptions(COLR_RGB | COLR_SINGLE, rot, gruen, blau);
+      initialisiereTextFenster();
     }
 
     /**
@@ -115,6 +118,7 @@ class LauftextPanel {
 
     /**
      * @brief Nicht-blockierender Aufruf für loop(). Aktualisiert Sekunden und Scroll-Animation.
+     * Wechselt automatisch zwischen oberem und unterem Panel, sobald der Text durchgelaufen ist.
      */
     void update() {
       unsigned long jetzt = millis();
@@ -130,11 +134,13 @@ class LauftextPanel {
       if (jetzt - letzterScrollStep >= scrollIntervallMs) {
         letzterScrollStep = jetzt;
 
-        // Wenn der Text komplett durchgelaufen ist (-1), neu ansetzen
+        // Wenn der Text auf dem aktuellen Panel komplett durchgelaufen ist (-1):
         if (scrollingMsg.UpdateText() == -1) {
-          scrollingMsg.SetText((unsigned char *)textPuffer, strlen(textPuffer));
+          // Panel wechseln: 0 -> 1 bzw. 1 -> 0
+          aktivesPanel = (aktivesPanel + 1) % ledPanelAnzahl;
+          initialisiereTextFenster();
         } else {
-          FastLED.show();
+          matrix.anzeigen();
         }
       }
     }
@@ -143,7 +149,8 @@ class LauftextPanel {
      * @brief Löscht alle LEDs und leert den Framebuffer.
      */
     void clear() {
-      FastLED.clear(true);
+      matrix.loeschen();
+      matrix.anzeigen();
     }
 
     /**
@@ -152,6 +159,13 @@ class LauftextPanel {
      */
     unsigned long getSekunden() const {
       return sekundenZaehler;
+    }
+
+    /**
+     * @brief Liefert den Index des aktuell aktiven Panels (0 = oben, 1 = unten).
+     */
+    uint8_t getAktivesPanel() const {
+      return aktivesPanel;
     }
 
     /**

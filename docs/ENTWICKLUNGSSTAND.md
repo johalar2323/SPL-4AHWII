@@ -12,8 +12,8 @@
 
 | Teammitglied | Modul / Zuständigkeit | Aktueller Status |
 | :--- | :--- | :--- |
-| **Person 1 (Hüseyin / User)** | **Laufschrift für 1 Panel:** Integration von `FastLED`, `LEDMatrix`, `LEDText` (Font Matrise) inkl. laufendem Sekundenzähler & Joystick-Modusumschaltung. | **Fertiggestellt & kompiliert** (v1.1) |
-| **Person 2 & Person 3** | **Matrixkoordinaten (x, y Mapping):** Umrechnung der Pixelkoordinaten für Panel 1 und Einbindung des um 180° gedrehten Panels 2. | In Bearbeitung |
+| **Person 1 (Hüseyin / User)** | **Laufschrift für Panels:** Integration von `FastLED`, `LEDMatrix`, `LEDText` (Font Matrise) inkl. laufendem Sekundenzähler & Joystick-Modusumschaltung. Jetzt erweitert auf alternierenden 2-Panel-Betrieb. | **Fertiggestellt & integriert** (v1.3) |
+| **Person 2 & Person 3** | **Matrixkoordinaten (x, y Mapping):** Umrechnung der Pixelkoordinaten für Panel 1 und Einbindung des um 180° gedrehten Panels 2 (`LedAnzeige`). | Fertiggestellt & integriert |
 | **Gesamtes Team** | Zeit (NTP), Wetter, Snake-Spiel, DHT22 mit Google-Sheets-Logging, Pogo-Pins. | Geplant nach Fertigstellung der Matrix-Basis |
 
 ---
@@ -47,6 +47,13 @@
   - Team-Stand integriert: FreeRTOS-Aufgaben (Tasks A, B, C) und neue `LedAnzeige`-Bibliothek der Kollegen zusammengeführt.
 - **Hardware-Test:** Erfolgreich auf ESP32 mit WS2812B-Panel (GPIO 25) und Joystick verifiziert.
 - **Build-Test:** PlatformIO Build (`esp32dev`) erfolgreich (289 KB Flash, 23 KB RAM).
+
+### [v1.3] – 09.11.2026: Alternierender Lauftext auf beiden Panels (oben / unten)
+- **Was wurde gemacht:**
+  - `LauftextPanel` direkt an die gemeinsame Gruppenklasse `LedAnzeige` angebunden (unterstützt beide WS2812 Panels an GPIO 25 und GPIO 26).
+  - Serieller Wechsel implementiert (Variante A): Der Lauftext läuft in normaler Schrifthöhe zuerst über das obere Panel (OriginY = 0). Nach vollständigem Durchlauf schaltet er automatisch auf das untere Panel (OriginY = 8, 180° gedreht) um und anschließend wieder nach oben.
+  - `main.cpp` aktualisiert: Einbindung beider Panels, Diagnoseausgabe um aktives Panel (`OBEN` / `UNTEN`) erweitert.
+- **Hinweis:** Hardwaretest auf echtem ESP32 steht noch aus, da der Nutzer vor Ort keinen USB-C-Anschluss für das Board zur Verfügung hatte.
 
 ---
 

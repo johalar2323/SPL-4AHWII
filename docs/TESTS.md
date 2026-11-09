@@ -30,3 +30,10 @@
 - Die allgemeinen Regeln der zentralen `AGENTS.md` per Skript mit `%USERPROFILE%/.codex/AGENTS.md` verglichen: vollständig übernommen; ausschließlich Markdown-Escapes und mehrfache Leerzeilen normalisiert.
 - Den vollständigen bisherigen CREO-Regelblock auf unveränderte Übernahme geprüft. Die globale Quelldatei blieb bytegenau unverändert. Ergebnis: erfolgreich.
 - Nur Agentenregeln und Dokumentation geändert; keine erneuten Firmware-Builds oder Hardwaretests erforderlich.
+
+## 09.11.2026 – 2-Panel-Lauftext (oben / unten alternierend)
+
+- `LauftextPanel` an `LedAnzeige` angebunden: `Init(&matrix, ledPanelBreite, scrollingMsg.FontHeight() + 1, 0, originY)` mit dynamischem `OriginY = 0` (oberes Panel) und `OriginY = 8` (unteres Panel).
+- Umschaltung bei `-1` von `UpdateText()` auf das jeweils andere Panel.
+- `main.cpp` angepasst: Template-Parameter entfernt, Diagnoseausgabe für aktives Panel (`OBEN` / `UNTEN`) ergänzt.
+- Einschränkungen: Hardwaretest auf dem ESP32 konnte vom Nutzer mangels USB-C-Kabel noch nicht durchgeführt werden; Test steht aus, sobald Hardware angeschlossen ist.

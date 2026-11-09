@@ -30,8 +30,8 @@ const byte PIN_DHT22_DATA      = 13;
 Joystick meinJoystick(PIN_JOYSTICK_X, PIN_JOYSTICK_Y, PIN_JOYSTICK_SW);
 Joystick extJoystick(PIN_EXT_JOYSTICK_X, PIN_EXT_JOYSTICK_Y, PIN_EXT_JOYSTICK_SW);
 
-// LauftextPanel für das obere 32x8 Panel an GPIO 25 (Helligkeit: 20 zur Sicherheit)
-LauftextPanel<PIN_PANEL_OBEN> meinPanel(20, 40);
+// LauftextPanel fuer beide Panels (oberes Panel GPIO 25, unteres Panel GPIO 26, Helligkeit: 20)
+LauftextPanel meinPanel(20, 40);
 
 // Status-Variable für Umschaltung per Joystick-Langdruck
 uint8_t farbModus = 0;
@@ -55,8 +55,9 @@ void setup() {
   Serial.println("Hardware initialisiert:");
   Serial.println("- Joystick 1: GPIO 34, 35, 14");
   Serial.println("- Joystick 2: GPIO 32, 33, 27");
-  Serial.println("- LED-Panel 1 (32x8, Zick-Zack): GPIO 25");
-  Serial.println("Lauftext mit Sekundenzaehler aktiv.");
+  Serial.println("- LED-Panel 1 (32x8, oben): GPIO 25");
+  Serial.println("- LED-Panel 2 (32x8, unten, 180°): GPIO 26");
+  Serial.println("Lauftext mit Sekundenzaehler aktiv (alternierend oben/unten).");
 
   // Die Aufgaben des zweiten Projektstands laufen parallel zur Panel-Schleife.
   if (starteFreeRtosAufgaben()) {
@@ -107,7 +108,8 @@ void loop() {
       case JoystickRichtung::Rechts: richtung = "Rechts"; break;
     }
     // Eine Ausgabe pro Zeile, damit die Task-Ausgaben nicht dazwischen liegen.
-    Serial.printf("Sekunden: %lus | J1: [X:%d%% Y:%d%%] (%s)\n",
+    Serial.printf("Panel: %s | Sekunden: %lus | J1: [X:%d%% Y:%d%%] (%s)\n",
+                  meinPanel.getAktivesPanel() == 0 ? "OBEN" : "UNTEN",
                   meinPanel.getSekunden(), meinJoystick.getX(), meinJoystick.getY(), richtung);
   }
 

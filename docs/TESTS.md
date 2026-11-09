@@ -1,5 +1,13 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Tetris
+
+- Modelltests `test/tetris/run.cmd` (MSVC C++14 auf diesem Rechner): BESTANDEN. Alle sieben Steine mit vier Orientierungen und vier Bloecken, Bewegungsgrenzen, Drehversatze am Rand, fehlender vertikaler Versatz am Boden, Kollision, Festsetzen, ein bis vier volle Reihen, Nachrutschen, Punkte, Levelwechsel/150-ms-Untergrenze, Siebenerbeutel, Pause, Spielende und Neustart.
+- Integration mit tatsaechlicher `main.cpp` und simulierten Arduino-/Anzeige-/Joystick-Schnittstellen: BESTANDEN. Drei Modi, Startpause und Neutralfreigabe, 250/100-ms-Wiederholung, Drehung nur bei neuer Oben-Eingabe, 50-ms-Softdrop und 700-ms-Fall, Timer-Ueberlauf, keine nachgeholten Fallserien, Pause/Fortsetzen, Neustart und Feldbegrenzung.
+- Bestehende Snake-, Modus- und Joysticktests nach Umstellung auf das Modus-Enum: BESTANDEN. Testprogramme erzeugen Binaerdateien ausschliesslich unter `.work`.
+- Alle fuenf Firmware-Builds esp32dev/test_master/test_led/test_koordinaten/test_steuerung mit PlatformIO Core 6.2.0 BESTANDEN (Exit 0). Die abschliessend erweiterten Modelltests fuer Festsetzen mit Reihenloeschung und blockierte Drehungen sowie die Tetris-Bedienungstests ebenfalls BESTANDEN. Insgesamt fuenf Hosttestprogramme erfolgreich.
+- Keine Hardware geflasht oder neu geprueft. Tetris-Darstellung und Bedienung am echten Aufbau sowie Versorgung bei vollem Spielfeld noch OFFEN. Kein Push; lokaler Commit nach CREO-Pruefung.
+
 ## 09.11.2026 – GitHub-Merge vor Snake-Push
 
 - `git fetch origin` lieferte `0765a5a` als letzten GitHub-Stand; ein Remote-Commit und vier lokale Commits seit gemeinsamer Basis `ab8fd01`.

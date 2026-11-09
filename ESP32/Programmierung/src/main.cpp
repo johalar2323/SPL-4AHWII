@@ -1,15 +1,21 @@
-﻿#include <Arduino.h>
+#include <Arduino.h>
 #include <esp_system.h>
 #include <Joystick_SPL.h>
 #include <LauftextPanel_SPL.h>
 #include <SnakeSpiel.h>
+#include <TetrisSpiel.h>
 #include "FreeRtosAufgaben.h"
 Joystick meinJoystick(34, 35, 14, 200, true);
 Joystick extJoystick(32, 33, 27);
 LedAnzeige anzeige;
 LauftextPanel lauftext(anzeige);
 SnakeSpiel spiel;
-bool snakeAktiv = false;
+enum class BetriebsModus { Lauftext, Snake, Tetris };
+BetriebsModus modus = BetriebsModus::Lauftext;
+TetrisSpiel tetris;
+bool tetrisEingabeFrei = false, horizontalWiederholt = false;
+JoystickRichtung letzteTetrisRichtung = JoystickRichtung::Mitte;
+uint32_t letzterTetrisFall = 0, horizontalStart = 0, horizontalLetzte = 0;
 uint8_t farbModus = 0;
 JoystickRichtung letzteRichtung = JoystickRichtung::Mitte;
 uint32_t letzterSchritt = 0;
@@ -28,13 +34,59 @@ void zeichneSpiel() {
   }
   anzeige.anzeigen();
 }
+void zeichneTetris() {
+  anzeige.loeschen();
+  const CRGB farben[] = {CRGB(), CRGB(0,255,255), CRGB(255,255,0), CRGB(160,0,255),
+                        CRGB(0,255,0), CRGB(255,0,0), CRGB(0,0,255), CRGB(255,120,0)};
+  const CRGB rand = tetris.zustand() == TetrisZustand::Pausiert ? CRGB::Blue :
+                    tetris.zustand() == TetrisZustand::Spielende ? CRGB::Red : CRGB(255,255,255);
+  for (int y = 0; y < 16; ++y) {
+    anzeige.setzePixel(10, y, rand); anzeige.setzePixel(21, y, rand);
+    for (int x = 0; x < 10; ++x) anzeige.setzePixel(x + 11, y, farben[tetris.zelleAn(x,y)]);
+  }
+  anzeige.anzeigen();
+}
+void bedieneTetris(JoystickRichtung richtung, bool kurz, uint32_t jetzt) {
+  bool neuZeichnen = false;
+  if (kurz) {
+    if (tetris.zustand() == TetrisZustand::Spielende) tetris.neustart(esp_random());
+    tetris.pauseUmschalten();
+    tetrisEingabeFrei = false; letzteTetrisRichtung = JoystickRichtung::Mitte;
+    letzterTetrisFall = jetzt; neuZeichnen = true;
+    Serial.println(tetris.zustand() == TetrisZustand::Laeuft ? "Tetris laeuft." : "Tetris pausiert.");
+  }
+  if (richtung == JoystickRichtung::Mitte) tetrisEingabeFrei = true;
+  if (tetrisEingabeFrei && tetris.zustand() == TetrisZustand::Laeuft) {
+    const bool horizontal = richtung == JoystickRichtung::Links || richtung == JoystickRichtung::Rechts;
+    if (horizontal) {
+      bool schieben = richtung != letzteTetrisRichtung;
+      if (schieben) { horizontalStart = jetzt; horizontalWiederholt = false; }
+      else if (jetzt - horizontalStart >= 250 && (!horizontalWiederholt || jetzt - horizontalLetzte >= 100)) {
+        schieben = true; horizontalWiederholt = true;
+      }
+      if (schieben) {
+        horizontalLetzte = jetzt;
+        neuZeichnen |= tetris.bewegen(richtung == JoystickRichtung::Links ? -1 : 1);
+      }
+    }
+    if (richtung == JoystickRichtung::Oben && letzteTetrisRichtung != JoystickRichtung::Oben)
+      neuZeichnen |= tetris.drehen();
+    letzteTetrisRichtung = richtung;
+  }
+  const uint32_t intervall = tetrisEingabeFrei && richtung == JoystickRichtung::Unten ? 50 : tetris.fallIntervall();
+  if (tetris.zustand() == TetrisZustand::Laeuft && jetzt - letzterTetrisFall >= intervall) {
+    letzterTetrisFall = jetzt; tetris.fallschritt(); neuZeichnen = true;
+    if (tetris.zustand() == TetrisZustand::Spielende) Serial.println("Tetris: Spielende. Kurz startet neu.");
+  }
+  if (neuZeichnen) zeichneTetris();
+}
 void setup() {
   Serial.begin(115200);
   Serial.println("Joystick fuer die Kalibrierung loslassen.");
   delay(1000);
   meinJoystick.kalibriereMitte(); extJoystick.kalibriereMitte();
   anzeige.begin(); lauftext.setText("4AHWII PIXELBOARD"); lauftext.begin();
-  Serial.println("PIXELBOARD: Lauftext. Langdruck wechselt Snake/Lauftext.");
+  Serial.println("PIXELBOARD: Lauftext. Langdruck: Lauftext -> Snake -> Tetris -> Lauftext.");
   if (!starteFreeRtosAufgaben()) Serial.println("FEHLER: Nicht alle FreeRTOS-Tasks gestartet.");
 }
 void loop() {
@@ -44,13 +96,17 @@ void loop() {
   const bool kurz = meinJoystick.wurdeKurzGedrueckt();
   const uint32_t jetzt = millis();
   if (lang) {
-    snakeAktiv = !snakeAktiv; letzterSchritt = jetzt;
-    if (snakeAktiv) {
+    modus = static_cast<BetriebsModus>((static_cast<unsigned>(modus) + 1) % 3);
+    letzterSchritt = letzterTetrisFall = jetzt;
+    if (modus == BetriebsModus::Snake) {
       spiel.neustart(esp_random()); spiel.pauseUmschalten(); zeichneSpiel();
-      Serial.println("Snake bereit: Kurzdruecken startet. Kopf weiss = faehrt, blau = Pause.");
-    }
-    else { lauftext.begin(); Serial.println("Lauftext aktiv."); }
-  } else if (snakeAktiv) {
+      Serial.println("Snake bereit: Kurz startet, Lang wechselt zu Tetris.");
+    } else if (modus == BetriebsModus::Tetris) {
+      tetris.neustart(esp_random()); tetrisEingabeFrei = false;
+      letzteTetrisRichtung = JoystickRichtung::Mitte;
+      zeichneTetris(); Serial.println("Tetris bereit: Mitte, dann Kurz zum Start.");
+    } else { lauftext.begin(); Serial.println("Lauftext aktiv."); }
+  } else if (modus == BetriebsModus::Snake) {
     if (kurz) {
       if (spiel.zustand() == SpielZustand::Verloren || spiel.zustand() == SpielZustand::Gewonnen) spiel.neustart(esp_random());
       else spiel.pauseUmschalten();
@@ -69,6 +125,8 @@ void loop() {
       if (spiel.zustand() == SpielZustand::Verloren || spiel.zustand() == SpielZustand::Gewonnen)
         Serial.printf("Snake beendet: %u Punkte. Kurz startet neu.\n", spiel.punkte());
     }
+  } else if (modus == BetriebsModus::Tetris) {
+    bedieneTetris(richtung, kurz, jetzt);
   } else {
     if (kurz) lauftext.resetSekunden();
     if (richtung != letzteRichtung && (richtung == JoystickRichtung::Links || richtung == JoystickRichtung::Rechts)) {
@@ -82,7 +140,8 @@ void loop() {
   static uint32_t letzteAusgabe = 0;
   if (jetzt - letzteAusgabe >= 1000) {
     letzteAusgabe = jetzt;
-    if (snakeAktiv) Serial.printf("Snake: %u Punkte, Zustand %u\n", spiel.punkte(), static_cast<unsigned>(spiel.zustand()));
+    if (modus == BetriebsModus::Snake) Serial.printf("Snake: %u Punkte, Zustand %u\n", spiel.punkte(), static_cast<unsigned>(spiel.zustand()));
+    else if (modus == BetriebsModus::Tetris) Serial.printf("Tetris: %lu Punkte, %lu Reihen, Level %lu\n", static_cast<unsigned long>(tetris.punkte()), static_cast<unsigned long>(tetris.reihen()), static_cast<unsigned long>(tetris.level()));
     else Serial.printf("Panel: %s | Sekunden: %lus | J1: X:%d%% Y:%d%%\n",
                        lauftext.getAktivesPanel() == 0 ? "OBEN" : "UNTEN",
                        lauftext.getSekunden(), meinJoystick.getX(), meinJoystick.getY());

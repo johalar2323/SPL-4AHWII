@@ -1,5 +1,19 @@
 # PIXELBOARD: gemeinsames ESP32-Projekt
 
+## Tetris als dritter Modus (09.11.2026)
+
+Die Standardumgebung bleibt `esp32dev`. Langdruck auf Joystick 1 wechselt jetzt **Lauftext -> Snake -> Tetris -> Lauftext**. Beide Spiele werden bei jedem Eintritt neu und pausiert angezeigt. Kurz startet/pausiert/setzt fort; nach Spielende startet Kurz direkt ein neues Spiel. Lauftextfarbe und Sekundenstand bleiben erhalten, die Lauftextuhr pausiert in beiden Spielen. Die bestaetigte Joystick-X-Invertierung und Paneelabbildung bleiben unveraendert.
+
+Tetris verwendet 10x16 Zellen mittig auf der LED-Flaeche (X=11..20, Y=0..15); Begrenzungen bei X=10/21. Joystick links/rechts verschiebt sofort, nach 250 ms Halten alle 100 ms erneut. Oben dreht einmal im Uhrzeigersinn; zum erneuten Drehen die Richtung verlassen und erneut nach oben bewegen. Unten halten beschleunigt den Fall auf 50 ms pro Reihe. Nach Eintritt/Fortsetzen muss der Joystick erst die Mittelstellung erreichen, bevor Richtungsbefehle angenommen werden. Der Falltimer wird bei Start/Fortsetzen neu gesetzt.
+
+Das hardwarefreie Modell `lib/TetrisSpiel` verwaltet ein festes 10x16-Feld und einen deterministisch mischbaren Siebenerbeutel mit I/O/T/S/Z/J/L. Die API umfasst `neustart(seed)`, `bewegen(dx)`, `drehen()`, `fallschritt()`, `pauseUmschalten()` sowie lesenden Zugriff auf Zellen, Zustand und Zaehler. Ein blockierter Fallschritt setzt den Stein fest, entfernt volle Reihen und erzeugt den naechsten Stein; ein blockierter Start bedeutet Spielende. Drehungen versuchen horizontal 0/-1/+1/-2/+2, ohne vertikale Versatze. O bleibt optisch unveraendert. Keine dynamische Speicherreservierung und keine neue Bibliotheksabhaengigkeit.
+
+Punkte: 100/300/500/800 mal bisherigem Level fuer 1/2/3/4 Reihen gleichzeitig. Level startet bei 1 und steigt pro zehn Reihen. Fallintervall 700 ms, je Level 50 ms weniger, mindestens 150 ms. Langsame Loops holen keine Fallserien nach. Keine zusaetzlichen Softdrop-Punkte, Vorschau, Geistersteine, Hold, Sofortablage oder persistente Highscores.
+
+Farben I cyan/O gelb/T violett/S gruen/Z rot/J blau/L orange. Die Begrenzung ist weiss bei Fahrt, blau bei Pause und rot bei Spielende; die Seiten bleiben dunkel. Punkte, Reihen und Level werden seriell mit 115200 Baud ausgegeben. Alle Modi teilen weiterhin genau eine `LedAnzeige` mit Helligkeit 8/255. Die alten Diagnoseumgebungen bleiben separat.
+
+Hosttests: `ESP32/Programmierung/test/tetris/run.cmd` prueft Modell und echte Hauptschleife mit simulierten Schnittstellen; die bestehenden Snake-/Joysticktests bleiben unter `test/snake/run.cmd`. Hardwareabnahme fuer Tetris noch offen: Richtungstreue, Drehungen, Paneelnaht, Reihenloeschung, Pause/Moduswechsel, Versorgung unter Last. Es wird nichts automatisch geflasht oder gepusht.
+
 ## GitHub-Zusammenfuehrung (09.11.2026)
 
 Remote-Commit `0765a5a` (Hüseyin Özensoy, 09.11.2026 14:12 +0100) ergaenzt alternierenden Lauftext. Beim Vergleich mit den vier lokalen Diagnose-/Snake-Commits traten Codekonflikte in Lauftextklasse und Hauptprogramm auf. Beide Funktionen wurden gemeinsam erhalten: Snake und korrigierte Joystick-/Paneelabbildung bleiben aktiv; im Lauftextmodus wechselt nach jedem vollstaendigen Textdurchlauf das 32x8-Fenster zwischen Y=0 und Y=8. Das jeweils inaktive Paneel ist schwarz. Beim Zurueckkehren aus Snake beginnt der Lauftext oben, Farbe und Sekundenstand bleiben erhalten.

@@ -1,116 +1,83 @@
-#include <Arduino.h>
-#include "FreeRtosAufgaben.h"
-#include <EntprellterTaster_SPL.h>
+﻿#include <Arduino.h>
+#include <esp_system.h>
 #include <Joystick_SPL.h>
 #include <LauftextPanel_SPL.h>
-
-// =============================================================================
-// Pin-Definitionen gemäß Vorgabe
-// =============================================================================
-// Primärer Joystick (ADC1_CH6 & ADC1_CH7 -> Wi-Fi sicher)
-const byte PIN_JOYSTICK_X      = 34;
-const byte PIN_JOYSTICK_Y      = 35;
-const byte PIN_JOYSTICK_SW     = 14;
-
-// Externer Joystick 2 (ADC1_CH4 & ADC1_CH5 -> Wi-Fi sicher)
-const byte PIN_EXT_JOYSTICK_X  = 32;
-const byte PIN_EXT_JOYSTICK_Y  = 33;
-const byte PIN_EXT_JOYSTICK_SW = 27;
-
-// LED-Panel Datenpins
-const byte PIN_PANEL_OBEN      = 25; // Erstes Panel (User-Aufgabe)
-const byte PIN_PANEL_UNTEN     = 26; // Zweites Panel (180° verdreht)
-
-// Sensor (experimentell)
-const byte PIN_DHT22_DATA      = 13;
-
-// =============================================================================
-// Objekt-Instanziierungen (camelCase nach Coding Guidelines)
-// =============================================================================
-Joystick meinJoystick(PIN_JOYSTICK_X, PIN_JOYSTICK_Y, PIN_JOYSTICK_SW);
-Joystick extJoystick(PIN_EXT_JOYSTICK_X, PIN_EXT_JOYSTICK_Y, PIN_EXT_JOYSTICK_SW);
-
-// LauftextPanel für das obere 32x8 Panel an GPIO 25 (Helligkeit: 20 zur Sicherheit)
-LauftextPanel<PIN_PANEL_OBEN> meinPanel(20, 40);
-
-// Status-Variable für Umschaltung per Joystick-Langdruck
+#include <SnakeSpiel.h>
+#include "FreeRtosAufgaben.h"
+Joystick meinJoystick(34, 35, 14);
+Joystick extJoystick(32, 33, 27);
+LedAnzeige anzeige;
+LauftextPanel lauftext(anzeige);
+SnakeSpiel spiel;
+bool snakeAktiv = false;
 uint8_t farbModus = 0;
-
-void setup() {
-  Serial.begin(115200);
-  delay(1000); // Wie im FreeRTOS-Projekt auf den Serial Monitor warten.
-  Serial.println("=========================================");
-  Serial.println("  ESP32 PIXELBOARD - SYSTEM INITIALISIERUNG");
-  Serial.println("=========================================");
-
-  // Joysticks initialisieren & kalibrieren
-  meinJoystick.kalibriereMitte();
-  extJoystick.kalibriereMitte();
-
-  // Lauftext-Panel initialisieren
-  meinPanel.begin();
-  meinPanel.setText("4AHWII PIXELBOARD");
-  meinPanel.setFarbe(0, 255, 100); // Standard: Türkis/Grün
-
-  Serial.println("Hardware initialisiert:");
-  Serial.println("- Joystick 1: GPIO 34, 35, 14");
-  Serial.println("- Joystick 2: GPIO 32, 33, 27");
-  Serial.println("- LED-Panel 1 (32x8, Zick-Zack): GPIO 25");
-  Serial.println("Lauftext mit Sekundenzaehler aktiv.");
-
-  // Die Aufgaben des zweiten Projektstands laufen parallel zur Panel-Schleife.
-  if (starteFreeRtosAufgaben()) {
-    Serial.println("FreeRTOS-Test gestartet: a/b/c im 2-/3-/5-Sekunden-Takt.");
-  } else {
-    Serial.println("FEHLER: Nicht alle FreeRTOS-Tasks konnten gestartet werden.");
+JoystickRichtung letzteRichtung = JoystickRichtung::Mitte;
+uint32_t letzterSchritt = 0;
+void zeichneSpiel() {
+  anzeige.loeschen();
+  for (uint16_t i = 0; i < spiel.laenge(); ++i) {
+    const auto p = spiel.segment(i);
+    CRGB farbe = i == 0 ? CRGB(128,255,128) : CRGB(0,80,0);
+    if (spiel.zustand() == SpielZustand::Verloren) farbe = CRGB::Red;
+    if (spiel.zustand() == SpielZustand::Gewonnen) farbe = CRGB::Blue;
+    anzeige.setzePixel(p.x, p.y, farbe);
   }
+  if (spiel.zustand() == SpielZustand::Laeuft || spiel.zustand() == SpielZustand::Pausiert) {
+    const auto p = spiel.futter(); anzeige.setzePixel(p.x, p.y, CRGB::Red);
+  }
+  anzeige.anzeigen();
 }
-
+void setup() {
+  Serial.begin(115200); delay(1000);
+  meinJoystick.kalibriereMitte(); extJoystick.kalibriereMitte();
+  anzeige.begin(); lauftext.setText("4AHWII PIXELBOARD"); lauftext.begin();
+  Serial.println("PIXELBOARD: Lauftext. Langdruck wechselt Snake/Lauftext.");
+  if (!starteFreeRtosAufgaben()) Serial.println("FEHLER: Nicht alle FreeRTOS-Tasks gestartet.");
+}
 void loop() {
-  // 1. Eingaben abfragen (nicht-blockierend)
-  meinJoystick.check();
-  extJoystick.check();
-
-  // 2. LED-Panel Lauftext und Sekundenzähler animieren (nicht-blockierend)
-  meinPanel.update();
-
-  // 3. Moduswechsel / Funktionsumschaltung per Langdruck des Joysticks
-  if (meinJoystick.wurdeLangeGedrueckt()) {
-    farbModus = (farbModus + 1) % 4;
-    Serial.printf("Umschaltung durch Langdruck! Farb-Modus: %u\n", static_cast<unsigned int>(farbModus));
-
-    switch (farbModus) {
-      case 0: meinPanel.setFarbe(0, 255, 100); break;   // Grün/Türkis
-      case 1: meinPanel.setFarbe(255, 120, 0); break;   // Orange
-      case 2: meinPanel.setFarbe(0, 150, 255); break;   // Blau
-      case 3: meinPanel.setFarbe(255, 0, 180); break;   // Magenta
+  meinJoystick.check(); extJoystick.check();
+  const auto richtung = meinJoystick.getRichtung();
+  const bool lang = meinJoystick.wurdeLangeGedrueckt();
+  const bool kurz = meinJoystick.wurdeKurzGedrueckt();
+  const uint32_t jetzt = millis();
+  if (lang) {
+    snakeAktiv = !snakeAktiv; letzterSchritt = jetzt;
+    if (snakeAktiv) { spiel.neustart(esp_random()); zeichneSpiel(); Serial.println("Snake gestartet."); }
+    else { lauftext.begin(); Serial.println("Lauftext aktiv."); }
+  } else if (snakeAktiv) {
+    if (kurz) {
+      if (spiel.zustand() == SpielZustand::Verloren || spiel.zustand() == SpielZustand::Gewonnen) spiel.neustart(esp_random());
+      else spiel.pauseUmschalten();
+      letzterSchritt = jetzt; zeichneSpiel();
+      Serial.printf("Snake: Zustand %u, Punkte %u\n", static_cast<unsigned>(spiel.zustand()), spiel.punkte());
     }
-  }
-
-  // 4. Kurzdruck: Sekundenzähler zurücksetzen
-  if (meinJoystick.wurdeKurzGedrueckt()) {
-    Serial.println("Taster kurz gedrueckt: Sekundenzaehler zurueckgesetzt.");
-    meinPanel.resetSekunden(0);
-  }
-
-  // 5. Diagnostik alle 1000 ms über Serial Monitor
-  static unsigned long letzteSerialAusgabe = 0;
-  if (millis() - letzteSerialAusgabe >= 1000) {
-    letzteSerialAusgabe = millis();
-
-    const char *richtung = "Mitte";
-    switch (meinJoystick.getRichtung()) {
-      case JoystickRichtung::Mitte:  break;
-      case JoystickRichtung::Oben:   richtung = "Oben"; break;
-      case JoystickRichtung::Unten:  richtung = "Unten"; break;
-      case JoystickRichtung::Links:  richtung = "Links"; break;
-      case JoystickRichtung::Rechts: richtung = "Rechts"; break;
+    switch (richtung) {
+      case JoystickRichtung::Oben: spiel.richtungAnfordern(SpielRichtung::Oben); break;
+      case JoystickRichtung::Unten: spiel.richtungAnfordern(SpielRichtung::Unten); break;
+      case JoystickRichtung::Links: spiel.richtungAnfordern(SpielRichtung::Links); break;
+      case JoystickRichtung::Rechts: spiel.richtungAnfordern(SpielRichtung::Rechts); break;
+      default: break;
     }
-    // Eine Ausgabe pro Zeile, damit die Task-Ausgaben nicht dazwischen liegen.
-    Serial.printf("Sekunden: %lus | J1: [X:%d%% Y:%d%%] (%s)\n",
-                  meinPanel.getSekunden(), meinJoystick.getX(), meinJoystick.getY(), richtung);
+    if (spiel.zustand() == SpielZustand::Laeuft && jetzt - letzterSchritt >= 200) {
+      letzterSchritt = jetzt; spiel.schritt(esp_random()); zeichneSpiel();
+      if (spiel.zustand() == SpielZustand::Verloren || spiel.zustand() == SpielZustand::Gewonnen)
+        Serial.printf("Snake beendet: %u Punkte. Kurz startet neu.\n", spiel.punkte());
+    }
+  } else {
+    if (kurz) lauftext.resetSekunden();
+    if (richtung != letzteRichtung && (richtung == JoystickRichtung::Links || richtung == JoystickRichtung::Rechts)) {
+      farbModus = (farbModus + (richtung == JoystickRichtung::Rechts ? 1 : 3)) % 4;
+      const CRGB farben[] = {CRGB(0,255,100), CRGB(255,120,0), CRGB(0,150,255), CRGB(255,0,180)};
+      const auto c = farben[farbModus]; lauftext.setFarbe(c.r, c.g, c.b);
+    }
+    lauftext.update();
   }
-
-  // Andere Tasks bedienen, ohne den 40-ms-Scrolltakt zu blockieren.
+  letzteRichtung = richtung;
+  static uint32_t letzteAusgabe = 0;
+  if (jetzt - letzteAusgabe >= 1000) {
+    letzteAusgabe = jetzt;
+    if (snakeAktiv) Serial.printf("Snake: %u Punkte, Zustand %u\n", spiel.punkte(), static_cast<unsigned>(spiel.zustand()));
+    else Serial.printf("Sekunden: %lus | J1: X:%d%% Y:%d%%\n", lauftext.getSekunden(), meinJoystick.getX(), meinJoystick.getY());
+  }
   delay(1);
 }

@@ -1,5 +1,14 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Snake mit gemeinsamer Anzeige
+
+- Hosttests: `ESP32/Programmierung/test/snake/run.cmd` vom Repository-Stamm, benoetigt die vorhandenen Visual Studio 2022 C++ BuildTools. Alternativ sind die beiden Testprogramme mit einem C++14-Compiler und `SnakeSpiel.cpp` uebersetzbar; fuer `test_modus.cpp` kommen zuerst `test/snake/fakes`, dann `include` in den Include-Pfad. Binaerdateien liegen unter `.work/snake`.
+- Spiellogik BESTANDEN: Bewegung, Umkehrsperre, eine Abbiegung pro Schritt, Pause, Wandkollision, Wachstum/Punkte, frei werdendes Schwanzfeld, Selbstkollision, belegungsfreie Futterplatzierung, volles Spielfeld mit 512 Segmenten und Neustart. Das volle Feld wird durch 509 Fressschritte entlang eines Hamilton-Kreises erreicht, ohne Test-Hintertueren in der Spiellogik.
+- Integration mit echter `main.cpp` und `LauftextPanel_SPL.h`, simulierten Arduino-/LED-/Joystick-Schnittstellen BESTANDEN: Startmodus, Wechsel, 200-ms-Takt, Pause/Fortsetzen, Neustart, pausierte Sekunden, Farbflanke, millis-Ueberlauf und einmalige Initialisierung der Anzeige. Dies bestaetigt keine elektrischen Signale oder Schriftorientierung.
+- Firmware-Builds mit PlatformIO Core 6.2.0: `esp32dev`, `test_master`, `test_led`, `test_koordinaten` erfolgreich kompiliert und gelinkt, Exit 0. Abschliessende Hosttests nach Erhalt der Scrollgeschwindigkeits-API und Pruefung des schwarzen unteren Lauftext-Paneels ebenfalls bestanden; Hauptbuild erneut Exit 0, RAM 26.232 Byte (8,0 %), Flash 292.893 Byte (22,3 %).
+- Hardware noch OFFEN: Eckfarben und Paneelnaht gemaess PROJEKT.md, richtige Joystick-Achsen, Lauftext lesbar/nur oben, Snake ueber Y=7/8, Kurz-/Langdruck, laengerer Betrieb ohne Neustarts sowie ausreichende Versorgung unter Last. Nutzer meldete beide Paneele nach Anschlussdiagnose als funktionierend; das bestaetigt noch nicht diese Abnahme.
+- Keine Firmware hochgeladen und nichts gepusht. Ein stabiler Stand wird nach CREO-Pruefung lokal committed.
+
 ## 09.11.2026 – Diagnose dunkler Paneele
 
 - Nutzerbefund: Sekunden-/Joystick-Ausgabe und Tasks a/b/c laufen. Beide Paneele sind über 5 V/GND vom ESP32 versorgt; Daten GPIO 25/26 jeweils an DIN/DI bestätigt. Das Gesamtprogramm steuert nur GPIO 25 an.

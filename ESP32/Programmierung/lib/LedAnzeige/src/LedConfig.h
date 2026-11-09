@@ -23,7 +23,7 @@ constexpr int ledGesamtAnzahl = ledAnzahlProPanel * ledPanelAnzahl;
 constexpr int ledOberesPanelPin = 25;
 constexpr int ledUnteresPanelPin = 26;
 constexpr bool ledUnteresPanelGedreht = true;  // 180 Grad gegenueber dem oberen.
-constexpr uint8_t ledHelligkeit = 16;  // Niedrige Helligkeit fuer den Koordinatentest.
+constexpr uint8_t ledHelligkeit = 8;  // Gemeinsames Limit fuer Lauftext und Snake.
 
 static_assert(ledPanelAnzahl == 1 || ledPanelAnzahl == 2,
               "LED_PANEL_ANZAHL muss 1 oder 2 sein.");

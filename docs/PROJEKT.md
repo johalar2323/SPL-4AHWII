@@ -1,5 +1,19 @@
 # PIXELBOARD: gemeinsames ESP32-Projekt
 
+## Snake und Lauftext (09.11.2026)
+
+Das Gesamtprogramm startet mit Lauftext. Langdruck (1 s) auf Joystick 1 wechselt zu einem neuen Snake-Spiel bzw. zum Lauftext zurueck. Kurz pausiert/setzt Snake fort oder startet nach Niederlage/Sieg neu; im Lauftext setzt Kurz die Sekunden zurueck. Links/rechts waehlt dort einmal pro Richtungsaenderung eine der vier Farben. Farbe und Sekundenstand bleiben beim Moduswechsel erhalten; die Lauftextuhr pausiert waehrend Snake.
+
+Snake: 32x16 Felder, Ursprung oben links, X rechts/Y unten, Paneelnaht zwischen Y=7/8. Startkoerper `(16,8),(15,8),(14,8)` nach rechts; alle 200 ms ein Schritt, eine gueltige Abbiegung pro Schritt, keine direkte Umkehr. Futter auf einem freien Feld verlaengert um eins und gibt einen Punkt. Rand und eigener Koerper beenden das Spiel; das gerade frei werdende Schwanzfeld bleibt betretbar. 512 belegte Felder bedeuten Sieg. Kopf hellgruen, Koerper dunkelgruen, Futter rot; nach Verlust Koerper rot, nach Sieg blau. Punkte/Zustand stehen seriell bei 115200 Baud.
+
+`lib/SnakeSpiel` enthaelt die hardwarefreie Spiellogik mit festem 512-Segment-Ringpuffer. `neustart(zufall)`, `richtungAnfordern()`, `pauseUmschalten()` und `schritt(zufall)` werden von der Hauptschleife bedient; Zufallswerte kommen dort von `esp_random()`. Ein spaeter Loop holt keine mehreren Spielschritte nach. Zeitvergleiche vertragen millis-Ueberlauf.
+
+`LedAnzeige` initialisiert beide FastLED-Controller einmal. `LauftextPanel` ist jetzt eine Klasse mit einer `LedAnzeige&` im Konstruktor statt einer Pin-Template-Klasse mit eigenem Puffer/Controller. `begin()` startet beim Moduswechsel den Scrollzyklus und dessen Timer neu. Lauftext verwendet dieselbe Koordinatenabbildung wie Snake, die fruehere separate Spiegelung `PANEL_WIDTH=-32` entfaellt. Deshalb ist die Hardwareabnahme der Ausrichtung erforderlich.
+
+Vor dem Spielen zuerst `test_koordinaten` manuell bauen/hochladen und von vorne pruefen: oben links rot, oben rechts gruen, unten links blau, unten rechts gelb; Paneelnaht links cyan, rechts magenta. Bauen: `pio run -d ESP32/Programmierung -e test_koordinaten`; das Hauptprogramm bleibt `esp32dev`. Die bestehenden Umgebungen `test_master` und `test_led` bleiben eigenstaendig.
+
+Der Nutzer meldet inzwischen beide Paneele als funktionierend; X/Y-Ausrichtung, Joystick-Richtungen und die Versorgung bei laengerer Schlange sind noch nicht auf Hardware abgenommen. 8/255 begrenzt die Helligkeit, bestaetigt aber keine ausreichende Stromversorgung ueber den ESP32. Keine neuen Bibliotheken, kein automatisches Flashen oder Pushen.
+
 ## Zusammenführung vom 19.10.2026
 
 Das PlatformIO-Projekt unter `ESP32/Programmierung/` kombiniert:
@@ -11,13 +25,13 @@ Der Commit `a60c478` hatte die bisherigen Lauftext-Dateien gelöscht. Die Klasse
 
 ## Verhalten und Zuständigkeiten
 
-- `src/main.cpp` initialisiert das obere 32×8-Panel an GPIO 25 mit Helligkeit 20 und 40 ms Scrollintervall. `loop()` aktualisiert Panel und beide Joysticks.
-- Joystick 1: GPIO 34/35/14; Joystick 2: GPIO 32/33/27. Langer Druck auf Joystick 1 wechselt die Textfarbe; kurzer Druck setzt den Sekundenzähler zurück.
+- `src/main.cpp` verwaltet Lauftext und Snake auf einer gemeinsamen `LedAnzeige` mit Helligkeit 8/255. `loop()` aktualisiert den aktiven Modus und beide Joysticks.
+- Joystick 1: GPIO 34/35/14; Joystick 2: GPIO 32/33/27. Langer Druck auf Joystick 1 wechselt Lauftext/Snake; kurzer Druck setzt im Lauftext den Sekundenzähler zurück und pausiert Snake bzw. startet nach Spielende neu. Links/rechts wechselt im Lauftext die Farbe einmal pro Auslenkung.
 - `src/FreeRtosAufgaben.cpp` startet die Tasks A/B/C auf Kern 1 mit Priorität 1 und jeweils 2048 Byte Stack. Sie geben `a`, `b`, `c` nach einer kurzen Startpause wiederholt im 2-/3-/5-Sekunden-Takt aus. Die Handles bleiben für spätere Suspend-/Resume-Aufgaben verfügbar.
 - Nur `loop()` greift auf Panel und Joystick-Zustände zu. Die Tasks verwenden diese Objekte nicht. `delay(1)` in `loop()` gibt anderen Tasks Rechenzeit; die langen Task-Pausen blockieren die Panel-Schleife nicht.
 - Task- und Diagnosezeilen werden jeweils mit einem `Serial.printf()` geschrieben. Ein fehlgeschlagener Taskstart wird im Serial Monitor gemeldet.
 
-Das zweite Panel (GPIO 26) und der Sensor (GPIO 13) bleiben wie zuvor nur als Pins vorgesehen; ihre Funktion ist noch nicht implementiert. Weitere geplante Funktionen stehen in der historischen Entwicklungsdokumentation.
+Snake verwendet beide Paneele (GPIO 25/26); Lauftext belegt nur die obere Haelfte, unten bleibt schwarz. Der Sensor an GPIO 13 ist weiterhin nicht implementiert. Weitere geplante Funktionen stehen in der historischen Entwicklungsdokumentation.
 
 ## Pinbelegung und Agentenregeln
 

@@ -1,5 +1,13 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Diagnose dunkler Paneele
+
+- Nutzerbefund: Sekunden-/Joystick-Ausgabe und Tasks a/b/c laufen. Beide Paneele sind über 5 V/GND vom ESP32 versorgt; Daten GPIO 25/26 jeweils an DIN/DI bestätigt. Das Gesamtprogramm steuert nur GPIO 25 an.
+- Separate Umgebung `test_led` ergänzt: je zwei Sekunden LED 0 oben rot/grün/blau, dann unten rot/grün/blau, Helligkeit 8/255, übriger Puffer schwarz. Bestehende Umgebungen behalten ihre Quellauswahl.
+- Build mit PlatformIO Core 6.2.0: `run -d ESP32/Programmierung -e test_led -e esp32dev` BESTANDEN, beide Umgebungen erfolgreich kompiliert und gelinkt (Exit 0). `test_led`: RAM 23.536 Byte, Flash 275.609 Byte; der Default bleibt `esp32dev`.
+- Hosttest mit dem tatsächlichen `Test_Led.cpp` und simulierten Arduino-/FastLED-Schnittstellen unter `.work/led-diagnose-check/`: BESTANDEN (Exit 0). Zwei vollständige Farbzyklen geprüft: korrekte GPIO-Zuordnung, Helligkeit 8, je Phase genau eine farbige LED, alle anderen schwarz, Pause 2000 ms. Dies ist kein Test der elektrischen Signale.
+- Keine Firmware hochgeladen. Tatsächliche Anzeige, Versorgung unter Last und 3,3-V-Datensignal an den 5-V-Paneelen sind noch zu prüfen; keine Fehlerursache als bestätigt gewertet.
+
 ## Anforderungen
 
 - Das Ziel `esp32dev` unter `ESP32/Programmierung` muss einschließlich aller wiederhergestellten Klassen und FreeRTOS-Aufgaben kompilieren und linken.

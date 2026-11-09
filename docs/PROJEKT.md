@@ -63,4 +63,8 @@ Auf diesem Rechner existieren PlatformIO Core 6.1.18 im allgemeinen `PATH` und C
 
 ## Prüfung und offene Punkte
 
+Für dunkle Paneele gibt es die separate Umgebung `test_led` (`src/tests/Test_Led.cpp`). Sie schaltet nacheinander nur die erste physische LED an GPIO 25 und GPIO 26 schwach rot/grün/blau (Helligkeit 8/255); alle anderen LEDs bleiben schwarz. Damit lässt sich die Verbindung ohne Lauftext-/Matrixabbildung prüfen. Bauen: `pio run -d ESP32/Programmierung -e test_led`. Zum ausdrücklich beauftragten oder manuell ausgeführten Flashen `-t upload` ergänzen. Der Default `esp32dev` bleibt das Gesamtprogramm; `test_master` steuert keine LEDs an.
+
+Am 09.11.2026 meldet der Nutzer: Beide 5-V-Paneele werden über den 5-V-Pin des ESP32 und ein Steckbrett versorgt, gemeinsame Masse; GPIO 25/26 liegen jeweils an DIN/DI. Die serielle Sekunden-/Joystick-Ausgabe läuft, beide Paneele bleiben dunkel. Versorgungsspannung unter Last und Signalpegel sind nicht gemessen; die Ursache ist noch offen. Der Diagnosetest reduziert die Leuchtlast, bestätigt aber keine ausreichende Stromversorgung über das Board.
+
 Build-Ergebnisse und ausstehende Hardware-Prüfungen stehen in [TESTS.md](TESTS.md). Frühere Hardware-Testergebnisse aus dem getrennten Projekt gelten nicht automatisch für diese zusammengeführte Firmware.

@@ -1,8 +1,14 @@
 # PIXELBOARD: gemeinsames ESP32-Projekt
 
+## Tetris: Einfach-/Doppelklick (09.11.2026)
+
+Im laufenden Tetris laesst Einfachklick den aktuellen Stein bis zum naechsten Hindernis fallen und setzt ihn sofort fest. Doppelklick pausiert/setzt fort. Zwei abgeschlossene Kurzdruecke innerhalb von einschliesslich 300 ms gelten als Doppelklick; ein einzelner Druck wird erst nach Ablauf dieses Fensters ausgefuehrt, damit ein Doppelklick nicht vorher einen Stein abwirft. Waechst waehrend der Wartezeit die Steingeneration durch automatisches Festsetzen, wird der alte Abwurfbefehl verworfen. Spielende waehrend des Fensters loest ebenfalls keinen unbeabsichtigten Neustart aus.
+
+In der Pause sind alle 160 Spielfelder schwarz, nur die blauen Begrenzungen bleiben sichtbar. Die Modelldaten werden nicht geloescht. Ein Einfachklick waehrend der Pause bewirkt nichts; zum Fortsetzen doppelt klicken und Joystick in die Mitte zuruecklassen. Ein neues Spiel beim ersten Betreten und der Neustart nach Spielende werden weiterhin mit Einfachklick gestartet (ebenfalls nach 300 ms). Langdruck zum Moduswechsel verwirft ausstehende Klicks. Snake und Lauftext behalten ihre bisherigen Tastenfunktionen.
+
 ## Tetris als dritter Modus (09.11.2026)
 
-Die Standardumgebung bleibt `esp32dev`. Langdruck auf Joystick 1 wechselt jetzt **Lauftext -> Snake -> Tetris -> Lauftext**. Beide Spiele werden bei jedem Eintritt neu und pausiert angezeigt. Kurz startet/pausiert/setzt fort; nach Spielende startet Kurz direkt ein neues Spiel. Lauftextfarbe und Sekundenstand bleiben erhalten, die Lauftextuhr pausiert in beiden Spielen. Die bestaetigte Joystick-X-Invertierung und Paneelabbildung bleiben unveraendert.
+Die Standardumgebung bleibt `esp32dev`. Langdruck auf Joystick 1 wechselt jetzt **Lauftext -> Snake -> Tetris -> Lauftext**. Beide Spiele werden bei jedem Eintritt neu und pausiert angezeigt. In Snake startet/pausiert Kurz bzw. setzt fort. In Tetris startet Kurz ein neues Spiel oder wirft im laufenden Spiel den Stein sofort ab; Doppelklick pausiert/setzt fort. Nach Spielende startet Kurz neu. Lauftextfarbe und Sekundenstand bleiben erhalten, die Lauftextuhr pausiert in beiden Spielen. Die bestaetigte Joystick-X-Invertierung und Paneelabbildung bleiben unveraendert.
 
 Tetris verwendet 10x16 Zellen mittig auf der LED-Flaeche (X=11..20, Y=0..15); Begrenzungen bei X=10/21. Joystick links/rechts verschiebt sofort, nach 250 ms Halten alle 100 ms erneut. Oben dreht einmal im Uhrzeigersinn; zum erneuten Drehen die Richtung verlassen und erneut nach oben bewegen. Unten halten beschleunigt den Fall auf 50 ms pro Reihe. Nach Eintritt/Fortsetzen muss der Joystick erst die Mittelstellung erreichen, bevor Richtungsbefehle angenommen werden. Der Falltimer wird bei Start/Fortsetzen neu gesetzt.
 
@@ -10,7 +16,7 @@ Das hardwarefreie Modell `lib/TetrisSpiel` verwaltet ein festes 10x16-Feld und e
 
 Punkte: 100/300/500/800 mal bisherigem Level fuer 1/2/3/4 Reihen gleichzeitig. Level startet bei 1 und steigt pro zehn Reihen. Fallintervall 700 ms, je Level 50 ms weniger, mindestens 150 ms. Langsame Loops holen keine Fallserien nach. Keine zusaetzlichen Softdrop-Punkte, Vorschau, Geistersteine, Hold, Sofortablage oder persistente Highscores.
 
-Farben I cyan/O gelb/T violett/S gruen/Z rot/J blau/L orange. Die Begrenzung ist weiss bei Fahrt, blau bei Pause und rot bei Spielende; die Seiten bleiben dunkel. Punkte, Reihen und Level werden seriell mit 115200 Baud ausgegeben. Alle Modi teilen weiterhin genau eine `LedAnzeige` mit Helligkeit 8/255. Die alten Diagnoseumgebungen bleiben separat.
+Farben I cyan/O gelb/T violett/S gruen/Z rot/J blau/L orange. Die Begrenzung ist weiss bei Fahrt, blau bei Pause und rot bei Spielende; die Seiten bleiben dunkel. In Tetris sind bei Pause sowohl der aktive Stein als auch alle festgesetzten Bloecke unsichtbar, der Spielstand bleibt erhalten. Punkte, Reihen und Level werden seriell mit 115200 Baud ausgegeben. Alle Modi teilen weiterhin genau eine `LedAnzeige` mit Helligkeit 8/255. Die alten Diagnoseumgebungen bleiben separat.
 
 Hosttests: `ESP32/Programmierung/test/tetris/run.cmd` prueft Modell und echte Hauptschleife mit simulierten Schnittstellen; die bestehenden Snake-/Joysticktests bleiben unter `test/snake/run.cmd`. Hardwareabnahme fuer Tetris noch offen: Richtungstreue, Drehungen, Paneelnaht, Reihenloeschung, Pause/Moduswechsel, Versorgung unter Last. Es wird nichts automatisch geflasht oder gepusht.
 

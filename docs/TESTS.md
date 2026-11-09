@@ -1,5 +1,13 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Tetris-Pause und Sofortablage
+
+- Angeforderter Pull: Remote-Pruefung ergab origin/main `868670f`; ein lokaler Tetris-Commit voraus. `git pull --ff-only`: Already up to date; keine Konflikte.
+- Modelltests fuer `sofortFallen()` BESTANDEN: Stein landet und wird genau einmal festgesetzt, eine vervollstaendigte Reihe wird geloescht/gepunktet, neuer Stein startet oben; Pausenzustand ignoriert Sofortablage.
+- Bedienungstests BESTANDEN: Einfachklick wirft genau einen Stein ab, Doppelklick pausiert ohne Abwurf; in der Pause alle Spielfeldpixel schwarz, Einzelklick ignoriert, nach Fortsetzen gleiche Steingeneration. 300-ms-Grenze, Timer-Ueberlauf, kein verspaeteter Abwurf nach Doppelklick, Abbruch beim Moduswechsel sowie automatisches Festsetzen im Klickfenster geprueft. Start/Neustart nach Einfachklick bleiben erhalten.
+- Alle fuenf Hosttestprogramme (Tetris-Modell/Bedienung, Snake-Modell/Modi, echte Joystickklasse) BESTANDEN. Hauptbuild esp32dev BESTANDEN (Exit 0): RAM 26.464 Byte, Flash 295.777 Byte.
+- Kein Firmware-Upload und keine neue Hardwarepruefung. Pause, Doppelklick und Sofortablage am echten Aufbau noch zu bestaetigen.
+
 ## 09.11.2026 – Tetris
 
 - Modelltests `test/tetris/run.cmd` (MSVC C++14 auf diesem Rechner): BESTANDEN. Alle sieben Steine mit vier Orientierungen und vier Bloecken, Bewegungsgrenzen, Drehversatze am Rand, fehlender vertikaler Versatz am Boden, Kollision, Festsetzen, ein bis vier volle Reihen, Nachrutschen, Punkte, Levelwechsel/150-ms-Untergrenze, Siebenerbeutel, Pause, Spielende und Neustart.

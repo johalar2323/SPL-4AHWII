@@ -13,6 +13,9 @@ SnakeSpiel spiel;
 enum class BetriebsModus { Lauftext, Snake, Tetris };
 BetriebsModus modus = BetriebsModus::Lauftext;
 TetrisSpiel tetris;
+bool tetrisBegonnen = false, tetrisKlickOffen = false;
+uint32_t tetrisKlickZeit = 0, tetrisKlickStein = 0;
+TetrisZustand tetrisKlickStatus = TetrisZustand::Pausiert;
 bool tetrisEingabeFrei = false, horizontalWiederholt = false;
 JoystickRichtung letzteTetrisRichtung = JoystickRichtung::Mitte;
 uint32_t letzterTetrisFall = 0, horizontalStart = 0, horizontalLetzte = 0;
@@ -42,18 +45,42 @@ void zeichneTetris() {
                     tetris.zustand() == TetrisZustand::Spielende ? CRGB::Red : CRGB(255,255,255);
   for (int y = 0; y < 16; ++y) {
     anzeige.setzePixel(10, y, rand); anzeige.setzePixel(21, y, rand);
-    for (int x = 0; x < 10; ++x) anzeige.setzePixel(x + 11, y, farben[tetris.zelleAn(x,y)]);
+    if (tetris.zustand() != TetrisZustand::Pausiert)
+      for (int x = 0; x < 10; ++x) anzeige.setzePixel(x + 11, y, farben[tetris.zelleAn(x,y)]);
   }
   anzeige.anzeigen();
 }
 void bedieneTetris(JoystickRichtung richtung, bool kurz, uint32_t jetzt) {
   bool neuZeichnen = false;
+  bool einfach = false, doppelt = false;
+  const auto einfachStatus = tetrisKlickStatus;
+  const auto einfachStein = tetrisKlickStein;
+  if (tetrisKlickOffen && jetzt - tetrisKlickZeit > 300) {
+    einfach = true; tetrisKlickOffen = false;
+  }
   if (kurz) {
-    if (tetris.zustand() == TetrisZustand::Spielende) tetris.neustart(esp_random());
-    tetris.pauseUmschalten();
+    if (tetrisKlickOffen) { doppelt = true; tetrisKlickOffen = false; }
+    else {
+      tetrisKlickOffen = true; tetrisKlickZeit = jetzt;
+      tetrisKlickStatus = tetris.zustand(); tetrisKlickStein = tetris.steinZaehler();
+    }
+  }
+  bool zustandGeaendert = false;
+  if (doppelt && tetris.zustand() != TetrisZustand::Spielende) {
+    tetris.pauseUmschalten(); tetrisBegonnen = true; zustandGeaendert = true;
+  } else if (einfach && tetris.zustand() == einfachStatus) {
+    if (einfachStatus == TetrisZustand::Laeuft && tetris.steinZaehler() == einfachStein) {
+      tetris.sofortFallen(); letzterTetrisFall = jetzt; neuZeichnen = true;
+    } else if (einfachStatus == TetrisZustand::Spielende ||
+               (einfachStatus == TetrisZustand::Pausiert && !tetrisBegonnen)) {
+      tetris.neustart(esp_random()); tetris.pauseUmschalten();
+      tetrisBegonnen = true; zustandGeaendert = true;
+    }
+  }
+  if (zustandGeaendert) {
     tetrisEingabeFrei = false; letzteTetrisRichtung = JoystickRichtung::Mitte;
     letzterTetrisFall = jetzt; neuZeichnen = true;
-    Serial.println(tetris.zustand() == TetrisZustand::Laeuft ? "Tetris laeuft." : "Tetris pausiert.");
+    Serial.println(tetris.zustand() == TetrisZustand::Laeuft ? "Tetris laeuft: Klick = sofort fallen, Doppelklick = Pause." : "Tetris pausiert: Doppelklick setzt fort.");
   }
   if (richtung == JoystickRichtung::Mitte) tetrisEingabeFrei = true;
   if (tetrisEingabeFrei && tetris.zustand() == TetrisZustand::Laeuft) {
@@ -96,13 +123,14 @@ void loop() {
   const bool kurz = meinJoystick.wurdeKurzGedrueckt();
   const uint32_t jetzt = millis();
   if (lang) {
+    tetrisKlickOffen = false;
     modus = static_cast<BetriebsModus>((static_cast<unsigned>(modus) + 1) % 3);
     letzterSchritt = letzterTetrisFall = jetzt;
     if (modus == BetriebsModus::Snake) {
       spiel.neustart(esp_random()); spiel.pauseUmschalten(); zeichneSpiel();
       Serial.println("Snake bereit: Kurz startet, Lang wechselt zu Tetris.");
     } else if (modus == BetriebsModus::Tetris) {
-      tetris.neustart(esp_random()); tetrisEingabeFrei = false;
+      tetris.neustart(esp_random()); tetrisEingabeFrei = false; tetrisBegonnen = false;
       letzteTetrisRichtung = JoystickRichtung::Mitte;
       zeichneTetris(); Serial.println("Tetris bereit: Mitte, dann Kurz zum Start.");
     } else { lauftext.begin(); Serial.println("Lauftext aktiv."); }

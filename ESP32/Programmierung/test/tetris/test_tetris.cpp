@@ -43,6 +43,13 @@ public:
     t.typ = 0; t.rotation = 0; t.x = 3; t.y = 14;
     for (int c = 0; c < 10; ++c) if (c < 3 || c > 6) t.feld[15][c] = 2;
     t.fallschritt(); assert(t.reihen() == 1 && t.punkte() == 100);
+    t.neustart(1); t.status = TetrisZustand::Laeuft; t.typ = 0;
+    for (int c = 0; c < 10; ++c) if (c < 3 || c > 6) t.feld[15][c] = 2;
+    auto generation = t.steinZaehler();
+    t.sofortFallen();
+    assert(t.steinZaehler() == generation + 1 && t.reihen() == 1 && t.punkte() == 100 && t.y == 0);
+    t.pauseUmschalten(); generation = t.steinZaehler();
+    t.sofortFallen(); assert(t.steinZaehler() == generation && t.y == 0);
     t.neustart(1); t.status = TetrisZustand::Laeuft; t.typ = 2; t.y = 5;
     for (int row = 4; row < 10; ++row) for (auto &c : t.feld[row]) c = 1;
     for (int sy = 0; sy < 4; ++sy) for (int sx = 0; sx < 4; ++sx)

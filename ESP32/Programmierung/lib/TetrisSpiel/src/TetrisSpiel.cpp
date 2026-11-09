@@ -15,7 +15,7 @@ uint32_t TetrisSpiel::wuerfeln() {
 
 void TetrisSpiel::neustart(uint32_t seed) {
   memset(feld, 0, sizeof(feld));
-  score = zeilen = 0; zufall = seed ? seed : 1; beutelPos = 7;
+  score = zeilen = generation = 0; zufall = seed ? seed : 1; beutelPos = 7;
   status = TetrisZustand::Pausiert;
   neuerStein();
 }
@@ -30,6 +30,7 @@ void TetrisSpiel::neuerStein() {
     beutelPos = 0;
   }
   typ = beutel[beutelPos++]; rotation = 0; x = 3; y = 0;
+  ++generation;
   if (!passt(x, y, rotation)) status = TetrisZustand::Spielende;
 }
 
@@ -87,6 +88,16 @@ void TetrisSpiel::reihenLoeschen() {
 void TetrisSpiel::fallschritt() {
   if (status != TetrisZustand::Laeuft) return;
   if (passt(x, y + 1, rotation)) { ++y; return; }
+  festsetzen();
+}
+
+void TetrisSpiel::sofortFallen() {
+  if (status != TetrisZustand::Laeuft) return;
+  while (passt(x, y + 1, rotation)) ++y;
+  festsetzen();
+}
+
+void TetrisSpiel::festsetzen() {
   for (int sy = 0; sy < 4; ++sy) for (int sx = 0; sx < 4; ++sx)
     if (steinZelle(typ, rotation, sx, sy)) feld[y + sy][x + sx] = typ + 1;
   reihenLoeschen(); neuerStein();

@@ -1,5 +1,11 @@
 # PIXELBOARD: gemeinsames ESP32-Projekt
 
+## GitHub-Zusammenfuehrung (09.11.2026)
+
+Remote-Commit `0765a5a` (Hüseyin Özensoy, 09.11.2026 14:12 +0100) ergaenzt alternierenden Lauftext. Beim Vergleich mit den vier lokalen Diagnose-/Snake-Commits traten Codekonflikte in Lauftextklasse und Hauptprogramm auf. Beide Funktionen wurden gemeinsam erhalten: Snake und korrigierte Joystick-/Paneelabbildung bleiben aktiv; im Lauftextmodus wechselt nach jedem vollstaendigen Textdurchlauf das 32x8-Fenster zwischen Y=0 und Y=8. Das jeweils inaktive Paneel ist schwarz. Beim Zurueckkehren aus Snake beginnt der Lauftext oben, Farbe und Sekundenstand bleiben erhalten.
+
+Die neue Getter-Schnittstelle `getAktivesPanel()` liefert 0 (oben) oder 1 (unten); die serielle Diagnose zeigt das aktive Paneel. Lauftext verwendet weiterhin eine Referenz auf die zentrale `LedAnzeige`, nicht die separate Anzeigeinstanz des Remote-Entwurfs. Dadurch bleiben die Controller einmalig initialisiert und Snake/Lauftext verwenden dieselbe korrigierte Abbildung. Die Helligkeit bleibt bei 8/255. Keine Git-Historie umgeschrieben.
+
 ## Steuerung und Paneelabbildung ueberarbeitet (09.11.2026)
 
 Nach Hardwaretest bestaetigt der Nutzer: Nur links/rechts am ersten Joystick sind vertauscht, sonst passt alles. Deshalb invertieren Hauptprogramm und `test_steuerung` nur dessen normalisierte X-Achse mit `Joystick(34,35,14,200,true)`. `getRawX()` bleibt der unveraenderte ADC-Wert; Y, Paneelabbildung und Joystick 2 bleiben unveraendert. Der neue optionale Konstruktorparameter `invertX` ist standardmaessig `false`.
@@ -43,7 +49,7 @@ Der Commit `a60c478` hatte die bisherigen Lauftext-Dateien gelöscht. Die Klasse
 - Nur `loop()` greift auf Panel und Joystick-Zustände zu. Die Tasks verwenden diese Objekte nicht. `delay(1)` in `loop()` gibt anderen Tasks Rechenzeit; die langen Task-Pausen blockieren die Panel-Schleife nicht.
 - Task- und Diagnosezeilen werden jeweils mit einem `Serial.printf()` geschrieben. Ein fehlgeschlagener Taskstart wird im Serial Monitor gemeldet.
 
-Snake verwendet beide Paneele (GPIO 25/26); Lauftext belegt nur die obere Haelfte, unten bleibt schwarz. Der Sensor an GPIO 13 ist weiterhin nicht implementiert. Weitere geplante Funktionen stehen in der historischen Entwicklungsdokumentation.
+Snake verwendet beide Paneele (GPIO 25/26); Lauftext wechselt nach jedem Durchlauf zwischen oberer und unterer Haelfte, das inaktive Paneel bleibt schwarz. Der Sensor an GPIO 13 ist weiterhin nicht implementiert. Weitere geplante Funktionen stehen in der historischen Entwicklungsdokumentation.
 
 ## Pinbelegung und Agentenregeln
 

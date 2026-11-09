@@ -9,18 +9,23 @@ class LauftextPanel {
   unsigned long sekunden = 0, letzteSekunde = 0, letzterScroll = 0;
   uint8_t r = 0, g = 255, b = 100;
   uint16_t scrollIntervall = 40;
+  uint8_t aktivesPanel = 0;
   void pufferAktualisieren() { snprintf(puffer, sizeof(puffer), "            %s: %lus            ", basis, sekunden); }
+  void textFensterStarten() {
+    anzeige.loeschen();
+    text.Init(&anzeige, ledPanelBreite, 8, 0, aktivesPanel * ledPanelHoehe);
+    text.SetText(reinterpret_cast<unsigned char *>(puffer), strlen(puffer));
+    text.SetTextColrOptions(COLR_RGB | COLR_SINGLE, r, g, b);
+    anzeige.anzeigen();
+  }
 public:
   explicit LauftextPanel(LedAnzeige &display) : anzeige(display) {}
   void begin() {
     letzteSekunde = letzterScroll = millis();
-    anzeige.loeschen();
+    aktivesPanel = 0;
     pufferAktualisieren();
     text.SetFont(MatriseFontData);
-    text.Init(&anzeige, 32, 8, 0, 0);
-    text.SetText(reinterpret_cast<unsigned char *>(puffer), strlen(puffer));
-    text.SetTextColrOptions(COLR_RGB | COLR_SINGLE, r, g, b);
-    anzeige.anzeigen();
+    textFensterStarten();
   }
   void setText(const char *neu) {
     if (!neu) return;
@@ -33,6 +38,7 @@ public:
     text.SetTextColrOptions(COLR_RGB | COLR_SINGLE, r, g, b);
   }
   unsigned long getSekunden() const { return sekunden; }
+  uint8_t getAktivesPanel() const { return aktivesPanel; }
   void setScrollGeschwindigkeit(uint16_t ms) { scrollIntervall = ms; }
   void clear() { anzeige.loeschen(); anzeige.anzeigen(); }
   void resetSekunden(unsigned long wert = 0) { sekunden = wert; letzteSekunde = millis(); pufferAktualisieren(); }
@@ -42,8 +48,10 @@ public:
     if (vergangen) { sekunden += vergangen; letzteSekunde += vergangen * 1000; pufferAktualisieren(); }
     if (jetzt - letzterScroll >= scrollIntervall) {
       letzterScroll = jetzt;
-      if (text.UpdateText() == -1) text.SetText(reinterpret_cast<unsigned char *>(puffer), strlen(puffer));
-      anzeige.anzeigen();
+      if (text.UpdateText() == -1) {
+        aktivesPanel = (aktivesPanel + 1) % ledPanelAnzahl;
+        textFensterStarten();
+      } else anzeige.anzeigen();
     }
   }
 };

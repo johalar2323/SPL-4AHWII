@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <stdint.h>
+constexpr int ledPanelBreite = 32, ledPanelHoehe = 8, ledPanelAnzahl = 2;
 struct CRGB {
   uint8_t r = 0, g = 0, b = 0;
   CRGB() = default;

@@ -83,7 +83,9 @@ void loop() {
   if (jetzt - letzteAusgabe >= 1000) {
     letzteAusgabe = jetzt;
     if (snakeAktiv) Serial.printf("Snake: %u Punkte, Zustand %u\n", spiel.punkte(), static_cast<unsigned>(spiel.zustand()));
-    else Serial.printf("Sekunden: %lus | J1: X:%d%% Y:%d%%\n", lauftext.getSekunden(), meinJoystick.getX(), meinJoystick.getY());
+    else Serial.printf("Panel: %s | Sekunden: %lus | J1: X:%d%% Y:%d%%\n",
+                       lauftext.getAktivesPanel() == 0 ? "OBEN" : "UNTEN",
+                       lauftext.getSekunden(), meinJoystick.getX(), meinJoystick.getY());
     const char *namen[] = {"MITTE", "OBEN", "UNTEN", "LINKS", "RECHTS"};
     Serial.printf("Joystick raw X=%d Y=%d -> %s\n", meinJoystick.getRawX(), meinJoystick.getRawY(), namen[static_cast<unsigned>(richtung)]);
   }

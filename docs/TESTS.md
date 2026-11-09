@@ -1,5 +1,13 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – GitHub-Merge vor Snake-Push
+
+- `git fetch origin` lieferte `0765a5a` als letzten GitHub-Stand; ein Remote-Commit und vier lokale Commits seit gemeinsamer Basis `ab8fd01`.
+- Nicht-mutierende Vorpruefung mit `git merge-tree` zeigte Inhaltskonflikte in `LauftextPanel_SPL.h` und `main.cpp`. Ein regulärer Merge mit `--no-commit` bestaetigte beide; Dokumentationsaenderungen wurden automatisch zusammengefuehrt.
+- Konflikte fachlich aufgeloest: zentrale gemeinsame Anzeige und korrigierte Snake-Steuerung behalten; alternierenden Lauftext und Getter/Serial-Anzeige des aktiven Paneels uebernommen.
+- Hosttests BESTANDEN: zusaetzlich erzwungenes Textende prueft Fensterwechsel 0 -> 8 -> 0; im Snake-Modus erfolgt kein Lauftextupdate, Rueckkehr startet oben. Spiellogik, Joystickregressionen und bisherige Modustests weiterhin erfolgreich.
+- Abschliessende Merge-Pruefung BESTANDEN: alle fuenf Firmware-Umgebungen erfolgreich gebaut (Exit 0); esp32dev: RAM 26.240 Byte, Flash 293.349 Byte. Kein Firmware-Upload; Darstellung am Aufbau noch nicht erneut geprueft.
+
 ## 09.11.2026 – Nur Joystick-X korrigieren
 
 - Nutzer bestaetigt nach Hardwaretest: links/rechts vertauscht, sonst passt alles. X-Invertierung nur fuer Joystick 1 in Hauptprogramm und Steuerungstest aktiviert; Y/Paneelabbildung/Joystick 2 nicht geaendert.
@@ -61,3 +69,10 @@
 - Die allgemeinen Regeln der zentralen `AGENTS.md` per Skript mit `%USERPROFILE%/.codex/AGENTS.md` verglichen: vollständig übernommen; ausschließlich Markdown-Escapes und mehrfache Leerzeilen normalisiert.
 - Den vollständigen bisherigen CREO-Regelblock auf unveränderte Übernahme geprüft. Die globale Quelldatei blieb bytegenau unverändert. Ergebnis: erfolgreich.
 - Nur Agentenregeln und Dokumentation geändert; keine erneuten Firmware-Builds oder Hardwaretests erforderlich.
+
+## 09.11.2026 – 2-Panel-Lauftext (oben / unten alternierend)
+
+- `LauftextPanel` an `LedAnzeige` angebunden: `Init(&matrix, ledPanelBreite, scrollingMsg.FontHeight() + 1, 0, originY)` mit dynamischem `OriginY = 0` (oberes Panel) und `OriginY = 8` (unteres Panel).
+- Umschaltung bei `-1` von `UpdateText()` auf das jeweils andere Panel.
+- `main.cpp` angepasst: Template-Parameter entfernt, Diagnoseausgabe für aktives Panel (`OBEN` / `UNTEN`) ergänzt.
+- Einschränkungen: Hardwaretest auf dem ESP32 konnte vom Nutzer mangels USB-C-Kabel noch nicht durchgeführt werden; Test steht aus, sobald Hardware angeschlossen ist.

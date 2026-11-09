@@ -3,6 +3,8 @@
 #include "../../src/main.cpp"
 uint32_t testZeit = 0;
 TestSerial Serial;
+bool testTextEnde = false;
+int testFensterY = -1;
 const CRGB CRGB::Red(255,0,0), CRGB::Blue(0,0,255);
 int main() {
   setup(); assert(!snakeAktiv && anzeige.starts == 1);
@@ -34,5 +36,15 @@ int main() {
   assert(spiel.zustand() == SpielZustand::Verloren);
   meinJoystick.kurz = true; loop(); assert(spiel.laenge() == 3 && spiel.zustand() == SpielZustand::Laeuft);
   assert(anzeige.starts == 1);
+  meinJoystick.lang = true; loop(); assert(!snakeAktiv);
+  assert(lauftext.getAktivesPanel() == 0 && testFensterY == 0);
+  testTextEnde = true; testZeit += 40; loop();
+  assert(lauftext.getAktivesPanel() == 1 && testFensterY == 8);
+  testTextEnde = true; testZeit += 40; loop();
+  assert(lauftext.getAktivesPanel() == 0 && testFensterY == 0);
+  meinJoystick.lang = true; loop(); assert(snakeAktiv);
+  testTextEnde = true; testZeit += 1000; loop(); assert(testTextEnde);
+  meinJoystick.lang = true; loop(); assert(!snakeAktiv && testFensterY == 0);
+  testTextEnde = false;
   std::puts("PASS: Moduswechsel, Tastenverbrauch, 200-ms-Takt, Pause, Sekundenfortsetzung, Farbflanke, millis-Ueberlauf, Neustart, einmalige Anzeigeinitialisierung.");
 }

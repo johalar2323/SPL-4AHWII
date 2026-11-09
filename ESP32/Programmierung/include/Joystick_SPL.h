@@ -25,6 +25,7 @@ class Joystick : public EntprellterTaster {
   private:
     byte pinX;                   // Analoger Eingangspin für X-Achse
     byte pinY;                   // Analoger Eingangspin für Y-Achse
+    bool xInvertiert;
     int rawX;                    // Letzter Rohwert X-Achse (0 - 4095)
     int rawY;                    // Letzter Rohwert Y-Achse (0 - 4095)
     int mitteX;                  // Kalibrierter Mittelwert X-Achse (~2048)
@@ -49,7 +50,8 @@ class Joystick : public EntprellterTaster {
      * @param pinTaste Pinnummer des digitalen Tasters (wird an EntprellterTaster übergeben).
      * @param deadzone Größe der Totzone um den Mittelwert (Standard: 200).
      */
-    Joystick(byte pinX, byte pinY, byte pinTaste, int deadzone = 200);
+    // X-Invertierung nur fuer entsprechend montierte Joysticks einschalten.
+    Joystick(byte pinX, byte pinY, byte pinTaste, int deadzone = 200, bool invertX = false);
 
     /**
      * @brief Aktualisiert den Zustand des Tasters und liest die Analogachsen ein.

@@ -1,5 +1,11 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Nur Joystick-X korrigieren
+
+- Nutzer bestaetigt nach Hardwaretest: links/rechts vertauscht, sonst passt alles. X-Invertierung nur fuer Joystick 1 in Hauptprogramm und Steuerungstest aktiviert; Y/Paneelabbildung/Joystick 2 nicht geaendert.
+- Regressionstest fuer unveraenderte Rohwerte, invertierte X-Endlagen und Richtungshilfen sowie unveraenderte Y-Endlagen ergaenzt. Alle drei Hosttestprogramme und die Builds esp32dev/test_steuerung BESTANDEN (Exit 0).
+- Die Korrektur ist noch nicht auf Hardware geladen; kein Push und kein automatischer Firmware-Upload.
+
 ## 09.11.2026 – Steuerung und falscher Paneeluebergang
 
 - Rueckmeldung: GPIO 25 oben, GPIO 26 unten; vertikaler Uebergang an falschen Kanten, Joystick nach oben ohne Reaktion. Keine Rohwerte gemeldet. Ein Hardwaredefekt oder eine Achseninvertierung ist nicht als Ursache bestaetigt.

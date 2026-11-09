@@ -1,7 +1,7 @@
 #pragma once
 enum class JoystickRichtung { Mitte, Oben, Unten, Links, Rechts };
 struct Joystick {
-  Joystick(int, int, int) {}
+  Joystick(int, int, int, int = 200, bool = false) {}
   bool kurz = false, lang = false;
   JoystickRichtung richtung = JoystickRichtung::Mitte;
   void check() {}

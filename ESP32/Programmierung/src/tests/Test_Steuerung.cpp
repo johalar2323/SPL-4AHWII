@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Joystick_SPL.h>
 #include <LedAnzeige.h>
-Joystick joystick(34, 35, 14);
+Joystick joystick(34, 35, 14, 200, true);
 LedAnzeige anzeige;
 void setup() {
   Serial.begin(115200);

@@ -2,6 +2,8 @@
 
 ## Steuerung und Paneelabbildung ueberarbeitet (09.11.2026)
 
+Nach Hardwaretest bestaetigt der Nutzer: Nur links/rechts am ersten Joystick sind vertauscht, sonst passt alles. Deshalb invertieren Hauptprogramm und `test_steuerung` nur dessen normalisierte X-Achse mit `Joystick(34,35,14,200,true)`. `getRawX()` bleibt der unveraenderte ADC-Wert; Y, Paneelabbildung und Joystick 2 bleiben unveraendert. Der neue optionale Konstruktorparameter `invertX` ist standardmaessig `false`.
+
 Nutzerbefund nach Snake-Test: GPIO 25 ist physisch oben, GPIO 26 unten. Der Uebergang erschien an den aeusseren statt den benachbarten Kanten; eine Joystickbewegung nach oben bewirkte nichts. Die lokale Y-Abbildung beider Paneele wurde deshalb gespiegelt. X und die relative 180-Grad-Drehung unten bleiben erhalten. Diese Korrektur ist am Aufbau noch mit den Eckfarben zu bestaetigen; die genaue Ursache der ausgebliebenen Aufwaertsreaktion ist ohne ADC-Werte noch offen.
 
 Snake wartet nach dem Moduswechsel mit blauem Kopf: Kurz startet, Kurz pausiert/setzt fort, Lang kehrt zum Lauftext zurueck. Ein weisser Kopf kennzeichnet Fahrt, rot Spielende. Nach Spielende startet Kurz direkt ein neues laufendes Spiel. Zum Lenken gilt die letzte erlaubte Richtung vor dem naechsten 200-ms-Schritt, statt die erste Abbiegung zu sperren. Auch Zurueckziehen auf Geradeaus ersetzt eine vorgemerkte Abbiegung; direkte Umkehr gegen die aktuelle Fahrtrichtung bleibt verboten.

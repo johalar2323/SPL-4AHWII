@@ -20,6 +20,18 @@ int main() {
   adc[35] = 2048; adc[34] = 1200; j.check(); assert(j.getRichtung() == JoystickRichtung::Links);
   adc[34] = 1800; adc[35] = 2200;
   j.kalibriereMitte(); assert(j.getX() == 0 && j.getY() == 0);
+  adc[34] = adc[35] = 2048;
+  Joystick montiert(34,35,14,200,true);
+  montiert.kalibriereMitte();
+  adc[34] = 4095; montiert.check();
+  assert(montiert.getRawX() == 4095 && montiert.getX() == -100);
+  assert(montiert.getRichtung() == JoystickRichtung::Links && montiert.istLinks());
+  adc[34] = 0; montiert.check();
+  assert(montiert.getX() == 100 && montiert.getRichtung() == JoystickRichtung::Rechts && montiert.istRechts());
+  adc[34] = 2048; adc[35] = 0; montiert.check();
+  assert(montiert.getX() == 0 && montiert.getY() == -100 && montiert.getRichtung() == JoystickRichtung::Oben);
+  adc[35] = 4095; montiert.check();
+  assert(montiert.getY() == 100 && montiert.getRichtung() == JoystickRichtung::Unten);
   assert(ledKoordinaten::index(0,0,2) == 0);
   assert(ledKoordinaten::index(0,7,2) == 7);
   assert(ledKoordinaten::index(31,8,2) == 263);

@@ -4,7 +4,7 @@
 #include <LauftextPanel_SPL.h>
 #include <SnakeSpiel.h>
 #include "FreeRtosAufgaben.h"
-Joystick meinJoystick(34, 35, 14);
+Joystick meinJoystick(34, 35, 14, 200, true);
 Joystick extJoystick(32, 33, 27);
 LedAnzeige anzeige;
 LauftextPanel lauftext(anzeige);

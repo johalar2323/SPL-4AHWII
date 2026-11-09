@@ -11,10 +11,11 @@
  * @param pinTaste Digitaler Eingang für den integrierten Drucktaster.
  * @param deadzone Schwellwert um die Mittelstellung zur Rauschunterdrückung.
  */
-Joystick::Joystick(byte pinX, byte pinY, byte pinTaste, int deadzone)
+Joystick::Joystick(byte pinX, byte pinY, byte pinTaste, int deadzone, bool invertX)
     : EntprellterTaster(pinTaste) {
   this->pinX = pinX;
   this->pinY = pinY;
+  this->xInvertiert = invertX;
   this->deadzone = deadzone;
   this->schwelleRichtung = 25; // 25% zum Lenken, 15% zum Loslassen
   this->mitteX = 2048;         // ESP32 12-Bit Standard-Mittelwert (4096 / 2)
@@ -112,7 +113,8 @@ int Joystick::getRawY() const {
  * @return -100 (voll links) bis +100 (voll rechts), 0 in Ruhelage.
  */
 int Joystick::getX() const {
-  return skaliereAchse(rawX, mitteX);
+  const int wert = skaliereAchse(rawX, mitteX);
+  return xInvertiert ? -wert : wert;
 }
 
 /**

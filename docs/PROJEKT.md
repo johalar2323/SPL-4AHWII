@@ -1,5 +1,11 @@
 # PIXELBOARD: gemeinsames ESP32-Projekt
 
+## Vorschau des naechsten Tetris-Steins (09.11.2026)
+
+Rechts neben dem Spielfeld zeigt ein 4x4-Fenster bei X=25..28, Y=2..5 die Form und Farbe des naechsten Steins in Startorientierung. Die Vorschau erscheint im laufenden Spiel, bleibt in Pause/Startpause und bei Spielende schwarz. Spiel- und Vorschaupuffer sind getrennt; der Siebenerbeutel wird bei Bedarf schon nach Entnahme seines letzten Steins neu gemischt, damit die Vorschau auch an Beutelgrenzen verbindlich bleibt. `vorschauZelle(x,y)` liest ausschliesslich, erzeugt keine Zufallswerte und liefert dieselben Farb-IDs wie `zelleAn()`.
+
+Vor dieser Erweiterung enthielt die lokale `main.cpp` wieder nur Snake/Lauftext. Sie wurde unter `.work/main-vor-vorschau-b5f219a7b688416db5ca04f257351637.cpp` gesichert und nach ausdruecklicher Nutzerfreigabe durch die zuletzt gepushte Tetris-Fassung mit dieser Erweiterung ersetzt. Die Sicherung bleibt lokal.
+
 ## Tetris: Einfach-/Doppelklick (09.11.2026)
 
 Im laufenden Tetris laesst Einfachklick den aktuellen Stein bis zum naechsten Hindernis fallen und setzt ihn sofort fest. Doppelklick pausiert/setzt fort. Zwei abgeschlossene Kurzdruecke innerhalb von einschliesslich 300 ms gelten als Doppelklick; ein einzelner Druck wird erst nach Ablauf dieses Fensters ausgefuehrt, damit ein Doppelklick nicht vorher einen Stein abwirft. Waechst waehrend der Wartezeit die Steingeneration durch automatisches Festsetzen, wird der alte Abwurfbefehl verworfen. Spielende waehrend des Fensters loest ebenfalls keinen unbeabsichtigten Neustart aus.
@@ -14,9 +20,9 @@ Tetris verwendet 10x16 Zellen mittig auf der LED-Flaeche (X=11..20, Y=0..15); Be
 
 Das hardwarefreie Modell `lib/TetrisSpiel` verwaltet ein festes 10x16-Feld und einen deterministisch mischbaren Siebenerbeutel mit I/O/T/S/Z/J/L. Die API umfasst `neustart(seed)`, `bewegen(dx)`, `drehen()`, `fallschritt()`, `pauseUmschalten()` sowie lesenden Zugriff auf Zellen, Zustand und Zaehler. Ein blockierter Fallschritt setzt den Stein fest, entfernt volle Reihen und erzeugt den naechsten Stein; ein blockierter Start bedeutet Spielende. Drehungen versuchen horizontal 0/-1/+1/-2/+2, ohne vertikale Versatze. O bleibt optisch unveraendert. Keine dynamische Speicherreservierung und keine neue Bibliotheksabhaengigkeit.
 
-Punkte: 100/300/500/800 mal bisherigem Level fuer 1/2/3/4 Reihen gleichzeitig. Level startet bei 1 und steigt pro zehn Reihen. Fallintervall 700 ms, je Level 50 ms weniger, mindestens 150 ms. Langsame Loops holen keine Fallserien nach. Keine zusaetzlichen Softdrop-Punkte, Vorschau, Geistersteine, Hold, Sofortablage oder persistente Highscores.
+Punkte: 100/300/500/800 mal bisherigem Level fuer 1/2/3/4 Reihen gleichzeitig. Level startet bei 1 und steigt pro zehn Reihen. Fallintervall 700 ms, je Level 50 ms weniger, mindestens 150 ms. Langsame Loops holen keine Fallserien nach. Keine zusaetzlichen Softdrop-Punkte, Geistersteine, Hold oder persistente Highscores. Vorschau und Sofortablage sind inzwischen ergaenzt.
 
-Farben I cyan/O gelb/T violett/S gruen/Z rot/J blau/L orange. Die Begrenzung ist weiss bei Fahrt, blau bei Pause und rot bei Spielende; die Seiten bleiben dunkel. In Tetris sind bei Pause sowohl der aktive Stein als auch alle festgesetzten Bloecke unsichtbar, der Spielstand bleibt erhalten. Punkte, Reihen und Level werden seriell mit 115200 Baud ausgegeben. Alle Modi teilen weiterhin genau eine `LedAnzeige` mit Helligkeit 8/255. Die alten Diagnoseumgebungen bleiben separat.
+Farben I cyan/O gelb/T violett/S gruen/Z rot/J blau/L orange. Die Begrenzung ist weiss bei Fahrt, blau bei Pause und rot bei Spielende; die Seiten bleiben bis auf die Vorschau dunkel. In Tetris sind bei Pause sowohl der aktive Stein als auch alle festgesetzten Bloecke unsichtbar, der Spielstand bleibt erhalten. Punkte, Reihen und Level werden seriell mit 115200 Baud ausgegeben. Alle Modi teilen weiterhin genau eine `LedAnzeige` mit Helligkeit 8/255. Die alten Diagnoseumgebungen bleiben separat.
 
 Hosttests: `ESP32/Programmierung/test/tetris/run.cmd` prueft Modell und echte Hauptschleife mit simulierten Schnittstellen; die bestehenden Snake-/Joysticktests bleiben unter `test/snake/run.cmd`. Hardwareabnahme fuer Tetris noch offen: Richtungstreue, Drehungen, Paneelnaht, Reihenloeschung, Pause/Moduswechsel, Versorgung unter Last. Es wird nichts automatisch geflasht oder gepusht.
 

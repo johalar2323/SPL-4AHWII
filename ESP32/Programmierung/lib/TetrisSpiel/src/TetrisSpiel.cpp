@@ -20,18 +20,28 @@ void TetrisSpiel::neustart(uint32_t seed) {
   neuerStein();
 }
 
-void TetrisSpiel::neuerStein() {
-  if (beutelPos == 7) {
+void TetrisSpiel::beutelMischen() {
     for (uint8_t i = 0; i < 7; ++i) beutel[i] = i;
     for (int i = 6; i > 0; --i) {
       const int j = wuerfeln() % (i + 1);
       const uint8_t alt = beutel[i]; beutel[i] = beutel[j]; beutel[j] = alt;
     }
     beutelPos = 0;
-  }
+}
+
+void TetrisSpiel::neuerStein() {
+  if (beutelPos == 7) beutelMischen();
   typ = beutel[beutelPos++]; rotation = 0; x = 3; y = 0;
+  // Den naechsten Beutel bereits vorbereiten, damit Vorschau und Spawn identisch bleiben.
+  if (beutelPos == 7) beutelMischen();
   ++generation;
   if (!passt(x, y, rotation)) status = TetrisZustand::Spielende;
+}
+
+uint8_t TetrisSpiel::vorschauZelle(int px, int py) const {
+  if (px < 0 || px >= 4 || py < 0 || py >= 4 || beutelPos >= 7) return 0;
+  const auto art = beutel[beutelPos];
+  return steinZelle(art, 0, px, py) ? art + 1 : 0;
 }
 
 bool TetrisSpiel::passt(int px, int py, uint8_t rot) const {

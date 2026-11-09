@@ -1,5 +1,12 @@
 # Tests des gemeinsamen PlatformIO-Projekts
 
+## 09.11.2026 – Tetris-Vorschau und Tagesabschluss
+
+- Lokale Snake-only-main.cpp vor Wiederherstellung per SHA-256 geprueft unter `.work/main-vor-vorschau-b5f219a7b688416db5ca04f257351637.cpp` gesichert. Wiederherstellung der Tetris-Fassung ausdruecklich vom Nutzer bestaetigt. Anfangs-Fetch ohne neue Remote-Commits.
+- Modelltest BESTANDEN: Vorschau ueber 28 Steinwechsel/einschliesslich Siebenerbeutel-Grenzen stimmt mit dem naechsten Spawn in Form/Farbe ueberein, zeigt vier Bloecke und veraendert den Zufallszustand beim Lesen nicht. Ungueltige Vorschaukoordinaten liefern 0.
+- Rendering-/Bedienungstest BESTANDEN: vier korrekte Vorschaupixel im rechten Seitenbereich, Aktualisierung nach Sofortablage, Vorschau nach Pause wiederhergestellt und in Pause unsichtbar. Vorherige Klick-/Pause-/Spiellogiktests unveraendert erfolgreich.
+- Alle fuenf Hosttestprogramme BESTANDEN (Exit 0). Hauptbuild esp32dev BESTANDEN (Exit 0), RAM 26.464 Byte, Flash 295.933 Byte. Keine Hardware geflasht oder neu geprueft.
+
 ## 09.11.2026 – Tetris-Pause und Sofortablage
 
 - Angeforderter Pull: Remote-Pruefung ergab origin/main `868670f`; ein lokaler Tetris-Commit voraus. `git pull --ff-only`: Already up to date; keine Konflikte.

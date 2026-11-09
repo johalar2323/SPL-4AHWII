@@ -48,6 +48,10 @@ void zeichneTetris() {
     if (tetris.zustand() != TetrisZustand::Pausiert)
       for (int x = 0; x < 10; ++x) anzeige.setzePixel(x + 11, y, farben[tetris.zelleAn(x,y)]);
   }
+  if (tetris.zustand() == TetrisZustand::Laeuft) {
+    for (int y = 0; y < 4; ++y) for (int x = 0; x < 4; ++x)
+      anzeige.setzePixel(25 + x, 2 + y, farben[tetris.vorschauZelle(x,y)]);
+  }
   anzeige.anzeigen();
 }
 void bedieneTetris(JoystickRichtung richtung, bool kurz, uint32_t jetzt) {

@@ -24,6 +24,22 @@ void pruefeVersteckt() {
   for (int y = 0; y < 16; ++y) for (int x = 11; x <= 20; ++x) {
     auto c = anzeige.pixel[y*32+x]; assert(c.r == 0 && c.g == 0 && c.b == 0);
   }
+  for (int y = 2; y < 6; ++y) for (int x = 25; x < 29; ++x) {
+    auto c = anzeige.pixel[y*32+x]; assert(c.r == 0 && c.g == 0 && c.b == 0);
+  }
+}
+void pruefeVorschau() {
+  int sichtbar = 0;
+  const CRGB farben[] = {CRGB(), CRGB(0,255,255), CRGB(255,255,0), CRGB(160,0,255),
+                        CRGB(0,255,0), CRGB(255,0,0), CRGB(0,0,255), CRGB(255,120,0)};
+  for (int y = 0; y < 4; ++y) for (int x = 0; x < 4; ++x) {
+    const auto id = tetris.vorschauZelle(x,y);
+    const auto c = anzeige.pixel[(y+2)*32+x+25];
+    const auto soll = farben[id];
+    assert(c.r == soll.r && c.g == soll.g && c.b == soll.b);
+    if (id) ++sichtbar;
+  }
+  assert(sichtbar == 4);
 }
 int main() {
   setup(); assert(modus == BetriebsModus::Lauftext);
@@ -38,6 +54,7 @@ int main() {
   }
   int x = TetrisSpielTest::x();
   einzelKlick(); assert(tetris.zustand() == TetrisZustand::Laeuft);
+  pruefeVorschau();
   tick(testZeit+100); assert(TetrisSpielTest::x() == x && !tetrisEingabeFrei);
   meinJoystick.richtung = JoystickRichtung::Mitte; loop(); assert(tetrisEingabeFrei);
   meinJoystick.richtung = JoystickRichtung::Rechts;
@@ -74,11 +91,13 @@ int main() {
   // Ein Klick setzt genau einen Stein fest; kein Pause-Umschalten.
   const auto generation = tetris.steinZaehler();
   einzelKlick(); assert(tetris.steinZaehler() == generation + 1 && TetrisSpielTest::y() == 0);
+  pruefeVorschau();
   assert(tetris.zustand() == TetrisZustand::Laeuft);
   doppelKlick(); assert(tetris.zustand() == TetrisZustand::Pausiert); pruefeVersteckt();
   const auto generationPause = tetris.steinZaehler();
   einzelKlick(); assert(tetris.zustand() == TetrisZustand::Pausiert && tetris.steinZaehler() == generationPause);
   doppelKlick(); assert(tetris.zustand() == TetrisZustand::Laeuft && tetris.steinZaehler() == generationPause);
+  pruefeVorschau();
   TetrisSpielTest::spielende(); assert(tetris.zustand() == TetrisZustand::Spielende);
   einzelKlick();
   assert(tetris.zustand() == TetrisZustand::Laeuft && tetris.punkte() == 0);

@@ -12,6 +12,7 @@ public:
   void sofortFallen();
   uint32_t steinZaehler() const { return generation; }
   uint8_t zelleAn(int x, int y) const;
+  uint8_t vorschauZelle(int x, int y) const;
   TetrisZustand zustand() const { return status; }
   uint32_t punkte() const { return score; }
   uint32_t reihen() const { return zeilen; }
@@ -27,6 +28,7 @@ private:
   TetrisZustand status = TetrisZustand::Pausiert;
   uint32_t wuerfeln();
   void neuerStein();
+  void beutelMischen();
   void reihenLoeschen();
   void festsetzen();
   bool passt(int px, int py, uint8_t rot) const;

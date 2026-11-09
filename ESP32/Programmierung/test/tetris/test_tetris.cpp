@@ -82,6 +82,22 @@ public:
       }
     }
     // Blockierter Spawn ist Spielende und laesst keine weiteren Aktionen zu.
+    t.neustart(987);
+    for (int schritt = 0; schritt < 28; ++schritt) {
+      uint8_t vorschau[4][4];
+      int anzahl = 0; uint8_t erwartetTyp = 0;
+      const auto rngVorher = t.zufall;
+      for (int y = 0; y < 4; ++y) for (int x = 0; x < 4; ++x) {
+        vorschau[y][x] = t.vorschauZelle(x,y);
+        if (vorschau[y][x]) { ++anzahl; erwartetTyp = vorschau[y][x]; }
+        assert(t.vorschauZelle(x,y) == vorschau[y][x]);
+      }
+      assert(anzahl == 4 && t.zufall == rngVorher);
+      t.neuerStein(); assert(t.typ + 1 == erwartetTyp);
+      for (int y = 0; y < 4; ++y) for (int x = 0; x < 4; ++x)
+        assert(t.zelleAn(x+3,y) == vorschau[y][x]);
+    }
+    assert(t.vorschauZelle(-1,0) == 0 && t.vorschauZelle(4,0) == 0 && t.vorschauZelle(0,4) == 0);
     t.neustart(1);
     for (int y = 0; y < 4; ++y) for (int x = 3; x <= 6; ++x) t.feld[y][x] = 1;
     t.neuerStein(); assert(t.zustand() == TetrisZustand::Spielende);
